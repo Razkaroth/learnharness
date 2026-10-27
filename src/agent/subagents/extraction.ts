@@ -3,7 +3,7 @@ import type { Usage } from "@earendil-works/pi-ai";
 import type { AgentTool } from "@earendil-works/pi-agent-core";
 import { Type, type Static, type TSchema } from "typebox";
 import { toToolResult } from "../tool-execute.ts";
-import type { ModelRole } from "../../../config.ts";
+import { activeUserId, type ModelRole } from "../../../config.ts";
 import {
 	FACTORY_SETTINGS,
 	ModelsNotConfiguredError,
@@ -647,6 +647,15 @@ export interface RunningExtraction {
 	/** True-cancellation handle (the dock's abort button): one controller per
 	 *  run, shared across phases; abort() cancels the in-flight model call. */
 	controller: AbortController;
+	/** The profile whose graph the run writes (undefined on an unclaimed
+	 *  install). Status and abort only see the caller's own runs. */
+	userId?: string;
+}
+
+/** A run belongs to the caller when either side has no profile. */
+function ownRun(run: RunningExtraction): boolean {
+	const caller = activeUserId();
+	return !caller || !run.userId || run.userId === caller;
 }
 
 interface LhExtractionGlobal {
@@ -685,7 +694,7 @@ function runs(): NonNullable<LhExtractionGlobal["__lhExtractionRuns"]> {
 
 /** In-flight pipeline runs (oldest first) — the /api/graph/status payload. */
 export function extractionStatuses(): RunningExtraction[] {
-	return [...runs().running.values()].sort((a, b) => a.startedAt - b.startedAt);
+	return [...runs().running.values()].filter(ownRun).sort((a, b) => a.startedAt - b.startedAt);
 }
 
 /** True cancellation of the in-flight run for a chat (the dock's abort
@@ -699,7 +708,7 @@ export function abortExtraction(chatId: string): boolean {
 	// job of its fan-out.
 	let found = false;
 	for (const run of runs().running.values()) {
-		if (run.chatId !== chatId) continue;
+		if (run.chatId !== chatId || !ownRun(run)) continue;
 		run.controller.abort();
 		found = true;
 	}
@@ -848,6 +857,7 @@ export function createExtractionPipeline(deps: ExtractionPipelineDeps): Extracti
 			startedAt: prev?.startedAt ?? R.lastStartedAt,
 			usage: prev?.usage ?? {}, // phase changes never lose usage
 			controller: prev?.controller ?? new AbortController(),
+			userId: prev?.userId ?? activeUserId(),
 		});
 		// Every phase transition announces the dock (push S5, 2026-10-02):
 		// notify-after-write — the registry is the feed's truth.
