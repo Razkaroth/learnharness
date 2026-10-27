@@ -14,7 +14,7 @@
 
 import { en, type Dictionary, type TranslationKey } from "./i18n/en/index.ts";
 import { es } from "./i18n/es/index.ts";
-import type { DictationLanguage, ResolvedGeneralSettings } from "./settings.ts";
+import type { DictationLanguage } from "./dictation.ts";
 
 export type { Dictionary, TranslationKey };
 
@@ -56,13 +56,4 @@ export function translate(language: AppLanguage, key: TranslationKey, vars?: Rec
 /** The Deepgram `language` code dictation uses for an app language. */
 export function dictationCodeFor(language: AppLanguage): DictationLanguage {
 	return APP_LANGUAGES.find((lang) => lang.id === language)?.dictation ?? DEFAULT_LANGUAGE;
-}
-
-/** The language dictation streams in: the override's pick while it is on
- *  (and something is picked), otherwise the app language's code. */
-export function effectiveDictationLanguage(
-	general: Pick<ResolvedGeneralSettings, "language" | "dictationOverride" | "dictationLanguage">,
-): DictationLanguage {
-	if (general.dictationOverride && general.dictationLanguage) return general.dictationLanguage;
-	return dictationCodeFor(general.language);
 }

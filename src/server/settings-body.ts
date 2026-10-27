@@ -19,6 +19,7 @@ import type {
 	BackgroundModelRole,
 	CompactionSettings,
 	GeneralSettings,
+	DictationSettings,
 	GraphSettings,
 	ModelsSettings,
 	RoleModelOverride,
@@ -29,11 +30,11 @@ import {
 	EXTRACTION_CHUNK_TOKENS_FLOOR,
 	MODEL_SLOTS,
 	TEXT_WIDTHS,
-	isDictationLanguage,
 	isTextWidth,
 } from "../core/settings.ts";
 import { WRITABLE_TOOL_KEYS } from "../core/pending.ts";
 import { isAppLanguage } from "../core/i18n.ts";
+import { isDictationLanguage } from "../core/dictation.ts";
 
 /** Parsed-or-rejected — `ok: false` carries the 400's error message. */
 export type SettingsBodyResult<T> =
@@ -84,7 +85,7 @@ function asRecord(body: unknown): Record<string, unknown> | null {
 	return body as Record<string, unknown>;
 }
 
-/** general: { autoUpdate?: boolean, language?: AppLanguage, dictationOverride?: boolean, dictationLanguage?: DictationLanguage } */
+/** general: { autoUpdate?: boolean, language?: AppLanguage } */
 export function parseGeneralSettingsBody(body: unknown): SettingsBodyResult<GeneralSettings> {
 	const raw = asRecord(body);
 	if (!raw) return { ok: false, error: "Invalid JSON body" };
@@ -100,18 +101,6 @@ export function parseGeneralSettingsBody(body: unknown): SettingsBodyResult<Gene
 			return { ok: false, error: "language must be a supported app language" };
 		}
 		settings.language = raw.language;
-	}
-	if (raw.dictationOverride !== undefined) {
-		if (typeof raw.dictationOverride !== "boolean") {
-			return { ok: false, error: "dictationOverride must be a boolean" };
-		}
-		settings.dictationOverride = raw.dictationOverride;
-	}
-	if (raw.dictationLanguage !== undefined) {
-		if (!isDictationLanguage(raw.dictationLanguage)) {
-			return { ok: false, error: "dictationLanguage must be a supported dictation language" };
-		}
-		settings.dictationLanguage = raw.dictationLanguage;
 	}
 	return { ok: true, settings };
 }
@@ -414,6 +403,15 @@ export function parseCompactionSettingsBody(body: unknown): SettingsBodyResult<C
 	return { ok: true, settings };
 }
 
+/** dictation: { language?: one of Nova-3's supported language codes } */
+export function parseDictationSettingsBody(body: unknown): SettingsBodyResult<DictationSettings> {
+	const raw = asRecord(body);
+	if (!raw) return { ok: false, error: "Invalid JSON body" };
+	if (raw.language === undefined) return { ok: true, settings: {} };
+	if (!isDictationLanguage(raw.language)) return { ok: false, error: "Unsupported dictation language" };
+	return { ok: true, settings: { language: raw.language } };
+}
+
 /** The section→parser map for PUT /api/settings/[section] (the route also
  *  carries the special prompts sub-resource). */
 export const SETTINGS_SECTIONS = {
@@ -424,6 +422,7 @@ export const SETTINGS_SECTIONS = {
 	graph: parseGraphSettingsBody,
 	compaction: parseCompactionSettingsBody,
 	models: parseModelsSettingsBody,
+	dictation: parseDictationSettingsBody,
 } as const;
 
 export type SettingsSectionName = keyof typeof SETTINGS_SECTIONS;

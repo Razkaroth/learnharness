@@ -34,20 +34,6 @@ describe("parseGeneralSettingsBody", () => {
 		assert.equal(parseGeneralSettingsBody({ autoUpdate: "yes" }).ok, false);
 	});
 
-	it("dictationLanguage: a supported language passes, anything else is a 400", () => {
-		const es = parseGeneralSettingsBody({ autoUpdate: true, dictationLanguage: "es" });
-		assert.ok(es.ok);
-		assert.deepEqual(es.settings, { autoUpdate: true, dictationLanguage: "es" });
-		assert.equal(parseGeneralSettingsBody({ dictationLanguage: "klingon" }).ok, false);
-		assert.equal(parseGeneralSettingsBody({ dictationLanguage: 3 }).ok, false);
-	});
-
-	it("dictationOverride: a boolean passes, anything else is a 400", () => {
-		const on = parseGeneralSettingsBody({ dictationOverride: true, dictationLanguage: "multi" });
-		assert.ok(on.ok);
-		assert.deepEqual(on.settings, { dictationOverride: true, dictationLanguage: "multi" });
-		assert.equal(parseGeneralSettingsBody({ dictationOverride: "on" }).ok, false);
-	});
 });
 
 describe("parseAgentSettingsBody", () => {
@@ -260,12 +246,12 @@ describe("parseCompactionSettingsBody (owner round 14)", () => {
 });
 
 describe("SETTINGS_SECTIONS (the route's section map)", () => {
-	it("maps exactly the seven record sections", () => {
+	it("maps exactly the eight record sections", () => {
 		// compaction joined (owner round 14): its own section PUT — the
 		// threshold is engine behavior, not an agent-section key.
 		assert.deepEqual(
 			Object.keys(SETTINGS_SECTIONS),
-			["general", "chat", "agent", "appearance", "graph", "compaction", "models"],
+			["general", "chat", "agent", "appearance", "graph", "compaction", "models", "dictation"],
 		);
 	});
 });

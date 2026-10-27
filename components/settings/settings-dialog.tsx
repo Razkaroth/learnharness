@@ -34,12 +34,8 @@ import { useBackdropDismiss } from "@/components/backdrop-dismiss";
 import {
 	APP_LANGUAGES,
 	CURRENT_SETTINGS_VERSION,
-	DICTATION_LANGUAGES,
-	effectiveDictationLanguage,
 	isAppLanguage,
-	isDictationLanguage,
 	resolveSettings,
-	translate,
 	type AgentSettings,
 	type AppearanceSettings,
 	type CompactionSettings,
@@ -49,7 +45,7 @@ import {
 } from "@/src/core";
 import { useAppearance } from "./appearance.tsx";
 import { useT } from "@/components/i18n";
-import { SettingsSection, SettingsRow, ThinSelect, Toggle } from "./controls.tsx";
+import { SettingsSection, SettingsRow, ThinSelect } from "./controls.tsx";
 import { UpdateSettings } from "./update-settings.tsx";
 import { AgentSection } from "./agent-section.tsx";
 import { UsersSection } from "./users-section.tsx";
@@ -89,8 +85,6 @@ const DialogContext = createContext<{ open: (section?: string, row?: string) => 
 /** AppShell-level mount: the sidebar row and the mod+, chord call this.
  *  `open(section)` lands the dialog on a specific section (the first-run
  *  setup flow deep-links to Keys when no provider key exists yet). */
-export const DICTATION_LANGUAGE_HINT = translate("en", "settings.general.dictationLanguage.hint");
-
 export function SettingsDialogProvider({
 	children,
 }: {
@@ -484,8 +478,6 @@ export function GeneralSection({
 }) {
 	const t = useT();
 	const general = resolveSettings({ version: CURRENT_SETTINGS_VERSION, ...(record ? { general: record } : {}) }).general;
-	/** What the dictation picker shows: the pick while overriding, else the app language's code. */
-	const dictationLanguage = effectiveDictationLanguage(general);
 	return (
 		<>
 			<SettingsRow label={t("settings.general.language")} testid="row-language">
@@ -500,42 +492,6 @@ export function GeneralSection({
 					{APP_LANGUAGES.map((lang) => (
 						<option key={lang.id} value={lang.id}>
 							{lang.label}
-						</option>
-					))}
-				</ThinSelect>
-			</SettingsRow>
-			<SettingsRow label={t("settings.general.dictationOverride")} testid="row-dictation-override">
-				<Toggle
-					checked={general.dictationOverride}
-					label={t("settings.general.dictationOverride.aria")}
-					testid="toggle-dictation-override"
-					onChange={(on) =>
-						onChange({
-							...record,
-							dictationOverride: on,
-							dictationLanguage: general.dictationLanguage ?? dictationLanguage,
-						})
-					}
-				/>
-			</SettingsRow>
-			<SettingsRow
-				label={t("settings.general.dictationLanguage")}
-				hint={t("settings.general.dictationLanguage.hint")}
-				testid="row-dictation-language"
-				dimmed={!general.dictationOverride}
-			>
-				<ThinSelect
-					value={dictationLanguage}
-					ariaLabel={t("settings.general.dictationLanguage.aria")}
-					testid="select-dictation-language"
-					disabled={!general.dictationOverride}
-					onChange={(next) => {
-						if (isDictationLanguage(next)) onChange({ ...record, dictationLanguage: next });
-					}}
-				>
-					{DICTATION_LANGUAGES.map((lang) => (
-						<option key={lang.id} value={lang.id}>
-							{lang.id === "multi" ? t("settings.general.dictationLanguage.multi") : lang.label}
 						</option>
 					))}
 				</ThinSelect>

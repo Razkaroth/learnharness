@@ -26,6 +26,7 @@ import type { ThinkingLevel } from "@earendil-works/pi-agent-core";
 import type { ModelRole } from "../../config.ts";
 import type { ChatSettings } from "./contracts/chat.ts";
 import type { SearchEngineId } from "./search.ts";
+import { dictationCodeFor } from "./i18n.ts";
 import {
 	BACKGROUND_MODEL_ROLES,
 	FACTORY_SETTINGS,
@@ -34,7 +35,8 @@ import {
 	type AgentSettings,
 	type BackgroundModelRole,
 	type FactorySettings,
-	type ResolvedGeneralSettings,
+	type GeneralSettings,
+	type DictationSettings,
 	type CompactionSettings,
 	type GraphSettings,
 	type ModelSlot,
@@ -68,7 +70,9 @@ export type EffectiveAppearance = FactorySettings["appearance"];
 
 /** The concrete view: every knob resolved, no absent fields. */
 export interface EffectiveSettings {
-	general: ResolvedGeneralSettings;
+	general: Required<GeneralSettings>;
+	/** Unpicked dictation language = the app language. */
+	dictation: Required<DictationSettings>;
 	agent: {
 		models: Record<BackgroundModelRole, EffectiveModelSpec | undefined>;
 		/** Delta map as stored — consumers resolve absent key → enabled. */
@@ -172,12 +176,14 @@ export function resolveSettings(record: UserSettings | null): EffectiveSettings 
 	for (const role of BACKGROUND_MODEL_ROLES) {
 		models[role] = resolveModelSpec(role, agent.models?.[role], modelsSection);
 	}
+	const language = record?.general?.language ?? FACTORY_SETTINGS.general.language;
 	return {
 		general: {
 			autoUpdate: record?.general?.autoUpdate ?? FACTORY_SETTINGS.general.autoUpdate,
-			language: record?.general?.language ?? FACTORY_SETTINGS.general.language,
-			dictationOverride: record?.general?.dictationOverride ?? FACTORY_SETTINGS.general.dictationOverride,
-			...(record?.general?.dictationLanguage ? { dictationLanguage: record.general.dictationLanguage } : {}),
+			language,
+		},
+		dictation: {
+			language: record?.dictation?.language ?? dictationCodeFor(language),
 		},
 		agent: {
 			models,

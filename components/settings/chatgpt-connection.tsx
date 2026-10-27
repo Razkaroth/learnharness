@@ -260,6 +260,14 @@ export function ChatGPTUIProvider({ children }: { children: React.ReactNode }) {
 		// No finally: pending OAuth outlives this IPC promise. Only its status
 		// completion, failure, or explicit cancellation releases the attempt.
 	}
+	async function finishSignIn(address: string) {
+		if (!bridge?.callback) return;
+		setError(null);
+		try {
+			const value: unknown = await bridge.callback(address);
+			if (mounted.current) receive.current(value);
+		} catch { if (mounted.current) setError(CONTROL_ERROR); }
+	}
 	const context = {
 		status, busy, error: warning ? null : visibleError, inlineError: dialog || warning ? null : visibleError, warning: dialog?.kind === "warning" ? null : warning,
 		connect: openConnect,
@@ -310,6 +318,7 @@ export function ChatGPTUIProvider({ children }: { children: React.ReactNode }) {
 				</div>
 				{!status.available && <p className="mt-3 text-xs text-muted-foreground">{t("settings.chatgpt.desktopOnly")}</p>}
 				{status.pending && <p role="status" className="mt-3 text-xs text-muted-foreground">{t("settings.chatgpt.waiting")}</p>}
+				{status.pending && web && bridge?.callback && <SignInAddress onSubmit={finishSignIn} />}
 				{context.error && <p role="alert" className="mt-3 text-xs text-red-400">{localMessage(t, context.error)}</p>}
 				{dialog.kind === "manage" && managed && <div className="mt-4 flex flex-wrap items-center justify-between gap-3" data-testid="chatgpt-account-strip">
 					<div data-testid="chatgpt-managed-identity" className="flex min-w-0 items-center gap-2 text-xs text-foreground">
@@ -341,19 +350,37 @@ function ContinueButton({ onClick, disabled, testid = "chatgpt-login" }: { onCli
 	</Button>;
 }
 
+function SignInAddress({ onSubmit }: { onSubmit: (address: string) => Promise<void> }) {
+	const t = useT();
+	const [address, setAddress] = useState("");
+	const [submitting, setSubmitting] = useState(false);
+	return <form className="mt-3 flex flex-col gap-2 text-xs text-muted-foreground" data-testid="chatgpt-callback" onSubmit={(event) => {
+		event.preventDefault();
+		if (submitting || !address.trim()) return;
+		setSubmitting(true);
+		void onSubmit(address.trim()).finally(() => setSubmitting(false));
+	}}>
+		<label htmlFor="chatgpt-callback-address">{t("settings.chatgpt.callback.label")}</label>
+		<div className="flex items-center gap-2">
+			<input id="chatgpt-callback-address" type="url" value={address} maxLength={4096} autoComplete="off" spellCheck={false} disabled={submitting} onChange={(event) => setAddress(event.target.value)} className="min-w-0 flex-1 rounded-sm border border-border bg-background px-2 py-1.5 text-foreground" />
+			<Button type="submit" variant="outline" size="sm" disabled={submitting || !address.trim()}>{t("settings.chatgpt.callback.submit")}</Button>
+		</div>
+	</form>;
+}
+
 function AccountDialog({ children, onClose, busy }: { children: React.ReactNode; onClose: () => void; busy: boolean }) {
 	const t = useT();
 	return <ConnectionDialog label={t("settings.chatgpt.account")} testid="chatgpt-account-dialog" backdropTestid="chatgpt-dialog-backdrop" onClose={onClose} busy={busy}>{children}</ConnectionDialog>;
 }
 
 /** Shared compact settings/setup row; account selection precedes the quiet action. */
-export function ChatGPTConnection(_props: { setup?: boolean } = {}) {
+export function ChatGPTConnection({ labelClassName }: { setup?: boolean; labelClassName?: string } = {}) {
 	const ui = useContext(Context);
 	const t = useT();
 	const active = ui.status.accounts.find((a) => a.id === ui.status.activeId && a.connected);
 	const accounts = ui.status.accounts.filter((a) => a.connected);
 	return <div className="flex flex-col gap-2" data-testid="chatgpt-connection">
-		<ConnectionRow label="ChatGPT" actionTestid={active ? undefined : "chatgpt-login"} action={active ? "manage" : "connect"} disabled={!ui.status.available || ui.busy || ui.status.pending} onAction={() => active ? ui.manage(active.id) : ui.connect()}>
+		<ConnectionRow label="ChatGPT" labelClassName={labelClassName} actionTestid={active ? undefined : "chatgpt-login"} action={active ? "manage" : "connect"} disabled={!ui.status.available || ui.busy || ui.status.pending} onAction={() => active ? ui.manage(active.id) : ui.connect()}>
 			{active && <select aria-label={t("settings.chatgpt.account")} value={active.id} disabled={ui.busy || ui.status.pending} onChange={(event) => ui.select(event.target.value)} className="min-w-0 rounded-sm border border-border bg-background px-2 py-1 text-xs text-foreground">
 				{accounts.map((a) => <option key={a.id} value={a.id}>{a.email || t("settings.chatgpt.account")}</option>)}
 			</select>}
