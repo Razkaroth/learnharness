@@ -47,6 +47,7 @@ The Linux AppImage and `.deb` can also serve the app to a browser. This mode use
 ```
 
 - `--host` defaults to `127.0.0.1` and `--port` to `3000`. Both accept `--flag value` or `--flag=value`.
+- To stop it, send SIGTERM or SIGINT to the server process. It exits within about 3 seconds, even with browser tabs open, and the AppImage unmounts itself. The server's process name is `learnharness --headless` and the startup line prints its PID; `--pid-file <path>` also writes the PID to a file and removes it on exit. Ctrl-C and systemd reach the server on their own. Don't signal the process named `LearnHarness-…AppImage`: that is the AppImage's FUSE helper, and killing it unmounts the app under a still-running server.
 - Data and keys default to the desktop app's profile (`$XDG_CONFIG_HOME/LearnHarness`, else `~/.config/LearnHarness`). `LH_DATA_DIR` and `LH_AUTH_FILE` override them.
 - This is browser-only mode. Dictation needs a secure context (HTTPS or localhost).
 - Subscriptions sign in from the remote browser and their credentials stay on the server. GitHub Copilot and Grok use device codes. ChatGPT's sign-in redirects to `127.0.0.1` on the server, so a browser on another device lands on a page that won't load; paste that page's address into the ChatGPT dialog to finish. Over plain HTTP the browser sends no Fetch Metadata, so the one-use sign-in redirect accepts a same-origin `Referer` instead.

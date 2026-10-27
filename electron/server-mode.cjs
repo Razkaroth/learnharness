@@ -11,11 +11,15 @@
  * Browser-only mode has no login: a non-loopback --host exposes chats,
  * settings, and API keys to anyone who can reach the port.
  */
+const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
 
-const USAGE = "usage: learnharness --headless [--host <address>] [--port <1-65535>]";
+const USAGE = "usage: learnharness --headless [--host <address>] [--port <1-65535>] [--pid-file <path>]";
 const DEFAULTS = { host: "127.0.0.1", port: 3000 };
+/** The AppImage's FUSE helper keeps the original command line, so matching
+ *  this title (`pkill -f "learnharness --headless"`) never hits the helper. */
+const TITLE = "learnharness --headless";
 
 /** --flag value and --flag=value. AppRun adds --no-sandbox on hosts
  *  without user namespaces, so it is accepted and ignored. */
@@ -24,13 +28,16 @@ function parseArgs(argv) {
 	for (let i = 0; i < argv.length; i++) {
 		const arg = argv[i];
 		if (arg === "--headless" || arg === "--no-sandbox") continue;
-		const match = /^--(host|port)(?:=(.*))?$/.exec(arg);
+		const match = /^--(host|port|pid-file)(?:=(.*))?$/.exec(arg);
 		if (!match) throw new Error(`unknown argument: ${arg}`);
 		const [, name, inline] = match;
 		const value = inline ?? argv[++i];
 		if (!value || value.startsWith("--")) throw new Error(`--${name} needs a value`);
 		if (name === "host") {
 			options.host = value;
+		} else if (name === "pid-file") {
+			// Resolved now: the server later changes directory into the package.
+			options.pidFile = path.resolve(value);
 		} else {
 			const port = Number(value);
 			if (!/^\d+$/.test(value) || port < 1 || port > 65535) throw new Error(`invalid port: ${value}`);
@@ -63,7 +70,18 @@ function serverEnv({ host, port }, env = process.env, home = os.homedir()) {
 	return out;
 }
 
-module.exports = { DEFAULTS, parseArgs, profileDir, serverEnv };
+/** Writes the PID. The returned cleanup removes the file only while it still
+ *  names this process, so a newer server's file survives an old one's exit. */
+function writePidFile(file, pid = process.pid) {
+	fs.writeFileSync(file, `${pid}\n`);
+	return () => {
+		try {
+			if (fs.readFileSync(file, "utf8").trim() === String(pid)) fs.unlinkSync(file);
+		} catch {}
+	};
+}
+
+module.exports = { DEFAULTS, TITLE, parseArgs, profileDir, serverEnv, writePidFile };
 
 if (require.main === module) {
 	let options;
@@ -76,8 +94,18 @@ if (require.main === module) {
 	const env = serverEnv(options);
 	for (const key of Object.keys(process.env)) if (!(key in env)) delete process.env[key];
 	Object.assign(process.env, env);
+	if (options.pidFile) {
+		let removePidFile;
+		try {
+			removePidFile = writePidFile(options.pidFile);
+		} catch (err) {
+			console.error(`cannot write --pid-file: ${err.message}`);
+			process.exit(1);
+		}
+		process.on("exit", removePidFile);
+	}
 	const entry = path.join(__dirname, "server", "standalone", "server.js");
-	console.log(`LearnHarness server mode on ${options.host}:${options.port} (data: ${env.LH_DATA_DIR})`);
+	console.log(`LearnHarness server mode on ${options.host}:${options.port} (pid ${process.pid}, data: ${env.LH_DATA_DIR})`);
 	// Next's graceful shutdown waits on open connections, and every open tab
 	// holds /api/events. The desktop shell SIGKILLs its child after 3s;
 	// server mode has no parent to do that.
@@ -86,4 +114,6 @@ if (require.main === module) {
 	}
 	process.chdir(path.dirname(entry));
 	require(entry);
+	// Next renames the process to `next-server (vX)` while server.js loads.
+	process.title = TITLE;
 }

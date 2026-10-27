@@ -10,7 +10,7 @@ import { fileURLToPath } from "node:url";
 
 const require = createRequire(import.meta.url);
 const root = fileURLToPath(new URL("../", import.meta.url));
-const { DEFAULTS, parseArgs, serverEnv } = require("../electron/server-mode.cjs");
+const { DEFAULTS, TITLE, parseArgs, serverEnv, writePidFile } = require("../electron/server-mode.cjs");
 const afterPack = require("../scripts/after-pack.cjs");
 
 describe("server-mode flags", () => {
@@ -28,7 +28,13 @@ describe("server-mode flags", () => {
 		assert.deepEqual(parseArgs(["--no-sandbox", "--headless", "--port", "9000"]), { host: "127.0.0.1", port: 9000 });
 	});
 
+	it("resolves --pid-file against the launch directory, before the server changes into the package", () => {
+		assert.deepEqual(parseArgs(["--headless", "--pid-file", "/run/lh.pid"]), { host: "127.0.0.1", port: 3000, pidFile: "/run/lh.pid" });
+		assert.equal(parseArgs(["--headless", "--pid-file=lh.pid"]).pidFile, path.join(process.cwd(), "lh.pid"));
+	});
+
 	for (const [argv, message] of [
+		[["--headless", "--pid-file"], /--pid-file needs a value/],
 		[["--headless", "--prot", "80"], /unknown argument: --prot/],
 		[["--headless", "--port"], /--port needs a value/],
 		[["--headless", "--host", "--port", "80"], /--host needs a value/],
@@ -68,6 +74,29 @@ describe("server-mode environment", () => {
 		const env = serverEnv(options, { LH_DATA_DIR: "/srv/lh/data", LH_AUTH_FILE: "/srv/lh/auth.json" }, "/home/u");
 		assert.equal(env.LH_DATA_DIR, "/srv/lh/data");
 		assert.equal(env.LH_AUTH_FILE, "/srv/lh/auth.json");
+	});
+});
+
+describe("server-mode process handles", () => {
+	it("names the server so a title match never hits the AppImage FUSE helper", () => {
+		assert.equal(TITLE, "learnharness --headless");
+		assert(!"./LearnHarness-0.3.9-x86_64.AppImage --headless --host 0.0.0.0".includes(TITLE));
+	});
+
+	it("writes the PID and removes the file on exit only while it still names this process", () => {
+		const dir = mkdtempSync(path.join(tmpdir(), "lh-pid-"));
+		try {
+			const file = path.join(dir, "lh.pid");
+			const remove = writePidFile(file, 4242);
+			assert.equal(readFileSync(file, "utf8"), "4242\n");
+			remove();
+			assert(!existsSync(file));
+			const stale = writePidFile(file, 4242);
+			writeFileSync(file, "5353\n");
+			stale();
+			assert.equal(readFileSync(file, "utf8"), "5353\n", "an older server's exit keeps a newer server's file");
+			assert.throws(() => writePidFile(path.join(dir, "missing", "lh.pid")));
+		} finally { rmSync(dir, { recursive: true, force: true }); }
 	});
 });
 
