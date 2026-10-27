@@ -2,16 +2,20 @@
 /**
  * The profile form (multi-user profiles, 2026-10-27): name, one of eight
  * colors, optional PIN, with a live avatar preview. Shared by the select
- * screen's "Add profile" and the Users settings section.
+ * screen's "Add profile" and the Users settings section; only the Users
+ * section shows the language field (the select screen has its own picker).
  */
 
 import { useId, useState } from "react";
 import {
+	APP_LANGUAGES,
 	PROFILE_COLORS,
 	PROFILE_NAME_MAX,
+	isAppLanguage,
 	isValidPin,
 	normalizeProfileName,
 	profileGradient,
+	type AppLanguage,
 	type ProfileColor,
 } from "@/src/core";
 import { cn } from "@/lib/utils";
@@ -23,10 +27,13 @@ export interface ProfileFormValues {
 	color: ProfileColor;
 	/** undefined = unchanged (editing), null = clear, string = set. */
 	pin?: string | null;
+	/** Set only when the form shows the language field. */
+	language?: AppLanguage;
 }
 
 export function ProfileForm({
 	initial,
+	initialLanguage,
 	hasPin = false,
 	submitLabel,
 	onSubmit,
@@ -34,6 +41,8 @@ export function ProfileForm({
 	compact = false,
 }: {
 	initial?: { name: string; color: ProfileColor };
+	/** Shows the language field, starting on this language. */
+	initialLanguage?: AppLanguage;
 	/** Editing a profile that already has a PIN: offer to keep or remove it. */
 	hasPin?: boolean;
 	submitLabel: string;
@@ -48,9 +57,11 @@ export function ProfileForm({
 	const [color, setColor] = useState<ProfileColor>(initial?.color ?? "indigo");
 	const [pin, setPin] = useState("");
 	const [removePin, setRemovePin] = useState(false);
+	const [language, setLanguage] = useState<AppLanguage | undefined>(initialLanguage);
 	const [error, setError] = useState<string | null>(null);
 	const [busy, setBusy] = useState(false);
 	const pinId = useId();
+	const languageId = useId();
 
 	const submit = async () => {
 		const trimmed = normalizeProfileName(name);
@@ -60,6 +71,7 @@ export function ProfileForm({
 		if (pin) values.pin = pin;
 		else if (removePin) values.pin = null;
 		else if (!initial) values.pin = null;
+		if (language) values.language = language;
 		setBusy(true);
 		setError(null);
 		const problem = await onSubmit(values);
@@ -154,6 +166,29 @@ export function ProfileForm({
 					</label>
 				)}
 			</div>
+
+			{language && (
+				<div className="flex w-full max-w-72 flex-col gap-1.5">
+					<label htmlFor={languageId} className="text-xs uppercase tracking-widest text-muted-foreground">
+						{t("users.form.language")}
+					</label>
+					<select
+						id={languageId}
+						value={language}
+						onChange={(e) => {
+							if (isAppLanguage(e.target.value)) setLanguage(e.target.value);
+						}}
+						data-testid="profile-language"
+						className="h-9 rounded-md border border-border bg-background px-3 font-ui text-sm text-foreground outline-none focus:border-muted-foreground"
+					>
+						{APP_LANGUAGES.map((lang) => (
+							<option key={lang.id} value={lang.id}>
+								{lang.label}
+							</option>
+						))}
+					</select>
+				</div>
+			)}
 
 			{error && (
 				<p role="alert" data-testid="profile-error" className="text-xs text-red-400">

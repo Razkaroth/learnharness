@@ -35,6 +35,7 @@ export const users: Record<keyof typeof en, string> = {
 	"users.form.pin.keepPlaceholder": "Déjalo vacío para conservarlo",
 	"users.form.pin.invalid": "El PIN tiene de 4 a 8 dígitos.",
 	"users.form.removePin": "Quitar el PIN",
+	"users.form.language": "Idioma",
 	"users.form.cancel": "Cancelar",
 
 	"users.settings.loading": "Cargando perfiles…",

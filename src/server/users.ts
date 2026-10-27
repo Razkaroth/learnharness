@@ -8,7 +8,8 @@
  * - The first profile is the only admin; it claims an unclaimed install.
  * - Anyone may add a profile from the select screen while restricted
  *   signups is off; the admin always may.
- * - Everyone edits their own name, color, and PIN; the admin edits anyone.
+ * - Everyone edits their own name, color, PIN, and language; the admin
+ *   edits anyone.
  * - Only the admin deletes, never an admin profile (so never itself).
  *
  * The PIN only gates opening a profile through the app. Local profiles,
@@ -43,6 +44,7 @@ import {
 } from "../store/users.ts";
 import { readSettings, writeSettings } from "../store/settings.ts";
 import { isAppLanguage, type AppLanguage } from "../core/i18n.ts";
+import { resolveSettings } from "../core/settings-resolution.ts";
 
 export { registryExists } from "../store/users.ts";
 export { runAsUser, activeUserId } from "../../config.ts";
@@ -109,13 +111,21 @@ function canSignUp(caller: Profile | null, profiles: readonly Profile[]): boolea
 	return !readHostSettings().restrictedSignups;
 }
 
+function profileLanguage(userId: string): AppLanguage {
+	return runAsUser(userId, () => resolveSettings(readSettings()).general.language);
+}
+
+function publicWithLanguage(profile: Profile): PublicProfile {
+	return { ...publicProfile(profile), language: profileLanguage(profile.id) };
+}
+
 export function usersSnapshot(req: Request | undefined): UsersSnapshot {
 	const profiles = readProfiles();
 	const caller = requestProfile(req);
 	return {
-		profiles: profiles.map(publicProfile),
+		profiles: profiles.map(publicWithLanguage),
 		host: readHostSettings(),
-		current: caller ? publicProfile(caller) : null,
+		current: caller ? publicWithLanguage(caller) : null,
 		canSignUp: canSignUp(caller, profiles),
 		existingData: hasUnclaimedData(),
 	};
@@ -125,8 +135,8 @@ interface ProfileInput {
 	name?: unknown;
 	color?: unknown;
 	pin?: unknown;
-	/** Create only: the select screen's language, seeded into the new
-	 *  profile's settings record. */
+	/** Written into the profile's own settings record. Create ignores an
+	 *  unknown value; edit refuses it. */
 	language?: unknown;
 }
 
@@ -161,8 +171,8 @@ function claimRoot(userId: string): void {
 	}
 }
 
-/** Set a new profile's app language, keeping any settings it claimed. */
-function seedLanguage(userId: string, language: AppLanguage): void {
+/** Set a profile's app language, keeping the rest of its settings. */
+function writeLanguage(userId: string, language: AppLanguage): void {
 	runAsUser(userId, () => {
 		const record = readSettings();
 		writeSettings({ ...record, general: { ...record?.general, language } });
@@ -192,10 +202,10 @@ export function createProfile(req: Request | undefined, input: ProfileInput): { 
 	};
 	if (first && !registryExists()) claimRoot(profile.id);
 	else fs.mkdirSync(userDataDir(profile.id), { recursive: true });
-	if (isAppLanguage(input.language)) seedLanguage(profile.id, input.language);
+	if (isAppLanguage(input.language)) writeLanguage(profile.id, input.language);
 	writeProfiles([...profiles, profile]);
 	const sessionId = caller ? null : createSession(profile.id);
-	return { profile: publicProfile(profile), sessionId };
+	return { profile: publicWithLanguage(profile), sessionId };
 }
 
 export function updateProfile(req: Request | undefined, id: string, input: ProfileInput): PublicProfile {
@@ -211,8 +221,10 @@ export function updateProfile(req: Request | undefined, id: string, input: Profi
 	const pin = parsePin(input.pin);
 	if (pin === null) delete next.pin;
 	else if (pin !== undefined) next.pin = pin;
+	if (input.language !== undefined && !isAppLanguage(input.language)) throw new UsersError(400, "Pick a language.");
 	writeProfiles(profiles.map((p) => (p.id === id ? next : p)));
-	return publicProfile(next);
+	if (input.language !== undefined) writeLanguage(id, input.language);
+	return publicWithLanguage(next);
 }
 
 /** Admin only; an admin profile is never deleted. Removes the folder. */

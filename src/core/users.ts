@@ -8,6 +8,8 @@
  * not authentication and the files are not encrypted.
  */
 
+import type { AppLanguage } from "./i18n.ts";
+
 export const PROFILE_COLORS = ["rose", "orange", "amber", "lime", "teal", "sky", "indigo", "violet"] as const;
 export type ProfileColor = (typeof PROFILE_COLORS)[number];
 
@@ -42,6 +44,9 @@ export interface PublicProfile {
 	color: ProfileColor;
 	role: ProfileRole;
 	hasPin: boolean;
+	/** The profile's app language, from its own settings record. Set by
+	 *  the server's snapshot; the pure projection can't read settings. */
+	language?: AppLanguage;
 }
 
 /** Install-wide switches the admin owns (host.json). */

@@ -34,6 +34,7 @@ export const users = {
 	"users.form.pin.keepPlaceholder": "Leave empty to keep it",
 	"users.form.pin.invalid": "A PIN is 4 to 8 digits.",
 	"users.form.removePin": "Remove the PIN",
+	"users.form.language": "Language",
 	"users.form.cancel": "Cancel",
 
 	"users.settings.loading": "Loading profiles…",

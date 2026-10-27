@@ -1,16 +1,17 @@
 "use client";
 /**
  * The Users section (multi-user profiles, 2026-10-27). Everyone edits
- * their own name, color, and PIN. The admin also adds, edits, and deletes
- * profiles and turns restricted sign-ups on or off. Install-wide data
- * (/api/users), never the profile's settings record.
+ * their own name, color, PIN, and language. The admin also adds, edits,
+ * and deletes profiles and turns restricted sign-ups on or off. Everything
+ * goes through /api/users; the server writes a language into that
+ * profile's own settings record.
  */
 
 import { useCallback, useEffect, useState } from "react";
-import type { PublicProfile, UsersSnapshot } from "@/src/core";
+import type { AppLanguage, PublicProfile, UsersSnapshot } from "@/src/core";
 import { ProfileAvatar } from "@/components/profile-avatar";
 import { ProfileForm, type ProfileFormValues } from "@/components/profile-form";
-import { useT, type Translate } from "@/components/i18n";
+import { useLanguage, useT, type Translate } from "@/components/i18n";
 import { SettingsGroup, SettingsRow, Toggle } from "./controls.tsx";
 
 type Editing = { kind: "none" } | { kind: "edit"; id: string } | { kind: "add" } | { kind: "delete"; id: string };
@@ -23,8 +24,14 @@ async function errorOf(res: Response, t: Translate): Promise<string> {
 const ROW_BUTTON =
 	"rounded-sm px-2 py-1 font-ui text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-foreground";
 
-export function UsersSection() {
+export function UsersSection({
+	onOwnLanguageChange,
+}: {
+	/** The signed-in profile's language was saved from here. */
+	onOwnLanguageChange?: (language: AppLanguage) => void;
+}) {
 	const t = useT();
+	const appLanguage = useLanguage();
 	const [snapshot, setSnapshot] = useState<UsersSnapshot | null | undefined>(undefined);
 	const [editing, setEditing] = useState<Editing>({ kind: "none" });
 	const [error, setError] = useState<string | null>(null);
@@ -57,6 +64,7 @@ export function UsersSection() {
 		});
 		if (!res.ok) return errorOf(res, t);
 		setEditing({ kind: "none" });
+		if (id === me.id && values.language && values.language !== me.language) onOwnLanguageChange?.(values.language);
 		await refresh();
 		return null;
 	};
@@ -65,7 +73,7 @@ export function UsersSection() {
 		const res = await fetch("/api/users", {
 			method: "POST",
 			headers: { "content-type": "application/json" },
-			body: JSON.stringify({ name: values.name, color: values.color, pin: values.pin ?? undefined }),
+			body: JSON.stringify({ name: values.name, color: values.color, pin: values.pin ?? undefined, language: values.language }),
 		});
 		if (!res.ok) return errorOf(res, t);
 		setEditing({ kind: "none" });
@@ -97,6 +105,7 @@ export function UsersSection() {
 			<ProfileForm
 				compact
 				initial={{ name: p.name, color: p.color }}
+				initialLanguage={p.language ?? appLanguage}
 				hasPin={p.hasPin}
 				submitLabel={t("users.settings.save")}
 				onSubmit={(values) => save(p.id, values)}
@@ -178,7 +187,7 @@ export function UsersSection() {
 						)}
 						{editing.kind === "add" ? (
 							<div className="rounded-md border border-border p-4">
-								<ProfileForm compact submitLabel={t("users.select.add")} onSubmit={add} onCancel={() => setEditing({ kind: "none" })} />
+								<ProfileForm compact initialLanguage={appLanguage} submitLabel={t("users.select.add")} onSubmit={add} onCancel={() => setEditing({ kind: "none" })} />
 							</div>
 						) : (
 							<button

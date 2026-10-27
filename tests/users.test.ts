@@ -198,4 +198,18 @@ describe("multi-user profiles", () => {
 		const other = users.createProfile(reqAs(adminSession), { name: "Eli", color: "sky", language: "xx" }).profile;
 		assert.equal(config.runAsUser(other.id, () => readSettings()), null, "no seed = no settings record");
 	});
+
+	it("editing a profile's language writes its settings; the snapshot reports each profile's language", async () => {
+		const { readSettings } = await import("../src/store/settings.ts");
+		const fran = users.createProfile(reqAs(adminSession), { name: "Fran", color: "teal" }).profile;
+		const franSession = users.unlockProfile(fran.id, undefined);
+		const snapshotLanguage = (id: string) => users.usersSnapshot(reqAs(adminSession)).profiles.find((p) => p.id === id)?.language;
+		assert.equal(snapshotLanguage(fran.id), "en", "no record = the default language");
+		assert.equal(users.updateProfile(reqAs(adminSession), fran.id, { language: "es" }).language, "es");
+		assert.equal(config.runAsUser(fran.id, () => readSettings())?.general?.language, "es");
+		assert.equal(snapshotLanguage(fran.id), "es");
+		refusal(() => users.updateProfile(reqAs(adminSession), fran.id, { language: "xx" }), 400);
+		assert.equal(users.updateProfile(reqAs(franSession), fran.id, { language: "en" }).language, "en");
+		assert.equal(users.usersSnapshot(reqAs(franSession)).current?.language, "en");
+	});
 });

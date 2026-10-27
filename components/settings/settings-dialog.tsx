@@ -395,7 +395,12 @@ export function SettingsDialogBody({
 							)}
 							{active === "users" && (
 								<SettingsSection title={t("settings.section.users")} testid="section-users">
-									<UsersSection />
+									<UsersSection
+										onOwnLanguageChange={(language) => {
+											setRecord((prev) => (prev ? { ...prev, general: { ...prev.general, language } } : prev));
+											notifySettingsSaved("general");
+										}}
+									/>
 								</SettingsSection>
 							)}
 							{active === "keys" && (
