@@ -48,7 +48,8 @@ The Linux AppImage and `.deb` can also serve the app to a browser. This mode use
 
 - `--host` defaults to `127.0.0.1` and `--port` to `3000`. Both accept `--flag value` or `--flag=value`.
 - Data and keys default to the desktop app's profile (`$XDG_CONFIG_HOME/LearnHarness`, else `~/.config/LearnHarness`). `LH_DATA_DIR` and `LH_AUTH_FILE` override them.
-- This is browser-only mode: API-key providers only. ChatGPT and subscription sign-in need the desktop window. Dictation needs a secure context (HTTPS or localhost).
+- This is browser-only mode. Dictation needs a secure context (HTTPS or localhost).
+- Subscriptions sign in from the remote browser and their credentials stay on the server. GitHub Copilot and Grok use device codes. ChatGPT's sign-in redirects to `127.0.0.1` on the server, so a browser on another device lands on a page that won't load; paste that page's address into the ChatGPT dialog to finish. Over plain HTTP the browser sends no Fetch Metadata, so the one-use sign-in redirect accepts a same-origin `Referer` instead.
 
 **There is no login.** A non-loopback `--host` exposes every chat, setting, and saved API key to anyone who can reach the port. On an untrusted network, keep the default loopback bind behind an authenticating HTTPS reverse proxy, or firewall the port.
 
