@@ -94,6 +94,7 @@ export const artifacts: Record<keyof typeof en, string> = {
 	"artifacts.practice.placeholder": "Trabaja aquí, piensa en voz alta.",
 	"artifacts.practice.compacting": "compactando la sesión…",
 	"artifacts.practice.hint": "↵ envía · ⇧↵ nueva línea",
+	"artifacts.practice.hintTouch": "↵ nueva línea",
 	"artifacts.practice.submit": "Enviar razonamiento",
 	"artifacts.practice.dismissed": "Problema descartado.",
 	"artifacts.practice.concluded": "Concluido",

@@ -62,6 +62,7 @@ export const composer: Record<keyof typeof en, string> = {
 	"composer.dock.thinkingPlaceholder": "¿Por qué esta respuesta? Lo que se te ocurra.",
 	"composer.dock.compacting": "compactando la sesión…",
 	"composer.dock.keysHint": "↵ envía · ⇧↵ nueva línea",
+	"composer.dock.keysHintTouch": "↵ nueva línea",
 	"composer.dock.submit": "Enviar respuesta",
 
 	"composer.answered.skipped": "omitida",

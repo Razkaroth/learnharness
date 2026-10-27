@@ -6,6 +6,8 @@ import { ToolContentResponse } from "@/components/ai-elements/message";
 import { Button } from "@/components/ui/button";
 import { joinDictation, useDictationTarget } from "@/components/dictation";
 import { useEnterSubmits } from "@/components/enter-submits";
+import { enterKey } from "@/components/phone-layout";
+import { usePhoneLayout } from "@/components/phone-layout-context";
 import { cn } from "@/lib/utils";
 import { useT } from "@/components/i18n";
 
@@ -52,6 +54,7 @@ export interface PracticeDockProps {
 export function PracticeDock({ problemCallId, input, expanded, onExpand, onSubmit, onEscape, compactionRunning = false }: PracticeDockProps) {
 	const t = useT();
 	const [thinking, setThinking] = useState("");
+	const { enterInsertsNewline } = usePhoneLayout();
 	// Ref MIRRORS the field ("nothing gets lost", the question-dock
 	// discipline): a submit resuming after `await finishDictation()` reads
 	// the tail, never a stale closure.
@@ -140,7 +143,8 @@ export function PracticeDock({ problemCallId, input, expanded, onExpand, onSubmi
 						}
 						// Enter SENDS — the single lane (owner round 2, 2026-10-05);
 						// Shift+Enter is the newline, ⌘/Ctrl+Enter the chord too.
-						if (e.key === "Enter" && (!e.shiftKey || e.metaKey || e.ctrlKey)) {
+						// On touch, Enter is the newline and Send sends.
+						if (e.key === "Enter" && enterKey({ coarsePointer: enterInsertsNewline, ...e }) === "submit") {
 							e.preventDefault();
 							submit();
 						}
@@ -157,7 +161,9 @@ export function PracticeDock({ problemCallId, input, expanded, onExpand, onSubmi
 				    field 10 − p-1 (4) = button 6. */}
 				<div className="flex items-center justify-between gap-2 p-1">
 					<span aria-hidden className="pl-1.5 text-xs text-muted-foreground">
-						{compactionRunning ? t("artifacts.practice.compacting") : t("artifacts.practice.hint")}
+						{compactionRunning
+							? t("artifacts.practice.compacting")
+							: t(enterInsertsNewline ? "artifacts.practice.hintTouch" : "artifacts.practice.hint")}
 					</span>
 					<Button
 						type="button"

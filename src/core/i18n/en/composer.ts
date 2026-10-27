@@ -60,6 +60,7 @@ export const composer = {
 	"composer.dock.thinkingPlaceholder": "Why this answer? Whatever comes to mind.",
 	"composer.dock.compacting": "compacting session…",
 	"composer.dock.keysHint": "↵ submits · ⇧↵ newline",
+	"composer.dock.keysHintTouch": "↵ newline",
 	"composer.dock.submit": "Submit answer",
 
 	"composer.answered.skipped": "skipped",

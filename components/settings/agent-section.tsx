@@ -53,6 +53,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { MenuShell } from "@/components/menu-shell";
+import { useModelMenuWidth } from "@/components/phone-layout-context";
 import { useSettingsSaved } from "@/components/settings-signal";
 import { defaultOrderLevel, populateLevel } from "@/components/thinking-default";
 import type React from "react";
@@ -313,6 +314,7 @@ export function AgentSection({
 }) {
 	const t = useT();
 	const language = useLanguage();
+	const menuWidth = useModelMenuWidth();
 	const [catalog, setCatalog] = useState<ModelCatalogEntry[] | null>(null);
 	/** The three tiers' resolved pins — GET /api/models `slots`. The rows'
 	 *  Default hints and thinking lists resolve from it. */
@@ -688,6 +690,7 @@ export function AgentSection({
 											anchorTestid={`slot-model-${slot}`}
 										testid={`slot-model-menu-${slot}`}
 										menuClass="flex w-[22rem] flex-col rounded-xl border border-border bg-card p-2 text-xs shadow-xl"
+										width={menuWidth}
 									>
 										<ModelMenuList
 											models={slotCatalog ?? undefined}

@@ -26,6 +26,7 @@ export const nav: Record<keyof typeof en, string> = {
 
 	"nav.session.practiceIcon": "Sesión de práctica",
 	"nav.session.rename": "Renombrar sesión",
+	"nav.session.actions": "Acciones de la sesión {title}",
 	"nav.session.meta.compacting": "Compactando contexto · {ago}",
 	"nav.session.meta.waiting": "Esperando tu respuesta · {ago}",
 	"nav.session.meta.problem": "Problema pendiente · {ago}",

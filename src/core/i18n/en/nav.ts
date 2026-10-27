@@ -25,6 +25,7 @@ export const nav = {
 
 	"nav.session.practiceIcon": "Practice session",
 	"nav.session.rename": "Rename session",
+	"nav.session.actions": "Session actions for {title}",
 	"nav.session.meta.compacting": "Compacting context · {ago}",
 	"nav.session.meta.waiting": "Waiting for input · {ago}",
 	"nav.session.meta.problem": "Problem waiting · {ago}",

@@ -93,6 +93,7 @@ export const artifacts = {
 	"artifacts.practice.placeholder": "Work here, think out loud.",
 	"artifacts.practice.compacting": "compacting session…",
 	"artifacts.practice.hint": "↵ submits · ⇧↵ newline",
+	"artifacts.practice.hintTouch": "↵ newline",
 	"artifacts.practice.submit": "Submit thinking",
 	"artifacts.practice.dismissed": "Problem dismissed.",
 	"artifacts.practice.concluded": "Concluded",
