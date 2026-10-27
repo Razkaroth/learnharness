@@ -40,7 +40,7 @@ export function PdfBriefCard({ output }: { output: unknown }) {
 	const result = output as PdfResult | undefined;
 	if (!result || typeof result.brief !== "string") {
 		return (
-			<div className="rounded-xl border bg-card p-4 text-sm text-muted-foreground">
+			<div className="lh-measure rounded-xl border bg-card p-4 text-sm text-muted-foreground">
 				{t("artifacts.pdf.unavailable")}
 			</div>
 		);
@@ -52,7 +52,7 @@ export function PdfBriefCard({ output }: { output: unknown }) {
 	const readList = result.pagesRead ?? result.pagesConsulted ?? [];
 	const consultedList = result.pagesConsulted ?? [];
 	return (
-		<div className="rounded-xl border bg-card p-4 text-card-foreground" data-testid="pdf-brief-card">
+		<div className="lh-measure rounded-xl border bg-card p-4 text-card-foreground" data-testid="pdf-brief-card">
 			<div className="mb-1 flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
 				{t("artifacts.pdf.briefLabel")}
 				{failed && <span className="rounded bg-red-500/15 px-1.5 py-0.5 text-red-500">{t("artifacts.status.failed")}</span>}
@@ -83,14 +83,14 @@ export function ResearchBriefCard({ output }: { output: unknown }) {
 	const result = output as ResearchResult | undefined;
 	if (!result || typeof result.brief !== "string") {
 		return (
-			<div className="rounded-xl border bg-card p-4 text-sm text-muted-foreground">
+			<div className="lh-measure rounded-xl border bg-card p-4 text-sm text-muted-foreground">
 				{t("artifacts.research.unavailable")}
 			</div>
 		);
 	}
 	const failed = result.brief.startsWith("Research failed");
 	return (
-		<div className="rounded-xl border bg-card p-4 text-card-foreground" data-testid="research-brief-card">
+		<div className="lh-measure rounded-xl border bg-card p-4 text-card-foreground" data-testid="research-brief-card">
 			<div className="mb-1 flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
 				{t("artifacts.research.briefLabel")}
 				{failed && <span className="rounded bg-red-500/15 px-1.5 py-0.5 text-red-500">{t("artifacts.status.failed")}</span>}

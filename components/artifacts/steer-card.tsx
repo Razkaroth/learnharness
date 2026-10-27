@@ -39,7 +39,7 @@ export function SubagentSteerCard({ message }: { message: LhViewMessage }) {
 			| undefined;
 		if (aborted?.data) return <AbortedBadge kind={aborted.data.kind ?? "job"} />;
 		return (
-				<div className="rounded-xl border bg-card p-4 text-sm text-muted-foreground">
+				<div className="lh-measure rounded-xl border bg-card p-4 text-sm text-muted-foreground">
 				{t("artifacts.steer.unavailable")}
 			</div>
 		);
@@ -70,7 +70,7 @@ export function SubagentSteerCard({ message }: { message: LhViewMessage }) {
 function AbortedBadge({ kind }: { kind: string }) {
 	const t = useT();
 	return (
-		<div data-testid="job-aborted-badge" className="flex items-center gap-2 text-xs text-muted-foreground">
+		<div data-testid="job-aborted-badge" className="lh-measure flex items-center gap-2 text-xs text-muted-foreground">
 			<CircleX className="size-3.5" />
 			<span className="font-medium uppercase tracking-wide">{kind}</span>
 			<span>{t("artifacts.steer.aborted")}</span>
@@ -88,7 +88,7 @@ function PdfCompleteBadge({ result }: { result: PdfResult }) {
 	// the ?? is runtime tolerance for pre-split persisted steers.
 	const readPages = result.pagesRead ?? result.pagesConsulted;
 	return (
-		<details data-testid="pdf-complete-badge" className="group w-full text-xs text-muted-foreground">
+		<details data-testid="pdf-complete-badge" className="group lh-measure text-xs text-muted-foreground">
 			<summary className="flex cursor-pointer select-none list-none items-center gap-2 [&::-webkit-details-marker]:hidden">
 				<CheckIcon className="size-3.5" />
 				<span className="font-medium uppercase tracking-wide">PDF</span>
@@ -119,7 +119,7 @@ function ResearchCompleteBadge({ result }: { result: ResearchResult }) {
 	const t = useT();
 	const n = result.sources.length;
 	return (
-		<details data-testid="research-complete-badge" className="group w-full text-xs text-muted-foreground">
+		<details data-testid="research-complete-badge" className="group lh-measure text-xs text-muted-foreground">
 			<summary className="flex cursor-pointer select-none list-none items-center gap-2 [&::-webkit-details-marker]:hidden">
 				<CheckIcon className="size-3.5" />
 				<span className="font-medium uppercase tracking-wide">{t("artifacts.steer.research")}</span>

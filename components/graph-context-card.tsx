@@ -28,7 +28,7 @@ export function GraphContextCard({ data }: { data: GraphContextData }) {
 	const propositionCount = t(propositions.length === 1 ? "graph.context.propositions.one" : "graph.context.propositions.other", { n: propositions.length });
 	const chainCount = t(chains.length === 1 ? "graph.context.chains.one" : "graph.context.chains.other", { n: chains.length });
 	return (
-		<div data-testid="graph-context-card" className="my-1">
+		<div data-testid="graph-context-card" className="lh-measure my-1">
 			<button
 				type="button"
 				data-testid="graph-context-toggle"
