@@ -12,6 +12,7 @@ export const settings: Record<keyof typeof en, string> = {
 	"settings.section.graph": "Grafo",
 	"settings.section.keyboard": "Teclado",
 	"settings.section.keyboard.hint": "Se guarda en este dispositivo",
+	"settings.section.users": "Usuarios",
 	"settings.section.general": "General",
 	"settings.general.autoUpdate": "Actualización automática",
 	"settings.general.autoUpdate.aria": "actualización automática",

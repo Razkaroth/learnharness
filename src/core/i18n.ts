@@ -27,6 +27,10 @@ export type AppLanguage = (typeof APP_LANGUAGES)[number]["id"];
 
 export const DEFAULT_LANGUAGE: AppLanguage = "en";
 
+/** Browser cookie holding the last app language this browser used, so the
+ *  profile select screen (no profile, no settings record) speaks it. */
+export const LANGUAGE_COOKIE = "lh_language";
+
 export function isAppLanguage(value: unknown): value is AppLanguage {
 	return APP_LANGUAGES.some((lang) => lang.id === value);
 }

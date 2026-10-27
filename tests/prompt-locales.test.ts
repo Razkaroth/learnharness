@@ -18,7 +18,9 @@ import { createFauxCore } from "@earendil-works/pi-ai";
 const TMP_DATA = fs.mkdtempSync(path.join(os.tmpdir(), "lh-prompt-locales-"));
 process.env.LH_DATA_DIR = TMP_DATA;
 
-const { PROMPTS_OVERRIDE_DIR, PATHS } = await import("../config.ts");
+const config = await import("../config.ts");
+const { PATHS } = config;
+const PROMPTS_OVERRIDE_DIR = config.promptsOverrideDir();
 const { composeInstructions, createTeacherAgent } = await import("../src/agent/teacher-agent.ts");
 const { resolveSegmentFile } = await import("../src/agent/prompt-segments.ts");
 

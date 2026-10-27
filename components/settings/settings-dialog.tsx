@@ -52,6 +52,7 @@ import { useT } from "@/components/i18n";
 import { SettingsSection, SettingsRow, ThinSelect, Toggle } from "./controls.tsx";
 import { UpdateSettings } from "./update-settings.tsx";
 import { AgentSection } from "./agent-section.tsx";
+import { UsersSection } from "./users-section.tsx";
 import type { ModelsSettings } from "@/src/core";
 import { MENU_CLOSE_EVENT, MENU_OPEN_EVENT } from "@/components/menu-shell";
 import { notifySettingsSaved } from "@/components/settings-signal";
@@ -73,6 +74,7 @@ const SECTIONS = [
 	{ id: "appearance", label: "settings.section.appearance" },
 	{ id: "graph", label: "settings.section.graph" },
 	{ id: "keyboard", label: "settings.section.keyboard" },
+	{ id: "users", label: "settings.section.users" },
 	{ id: "general", label: "settings.section.general" },
 ] as const;
 type SectionId = (typeof SECTIONS)[number]["id"];
@@ -389,6 +391,11 @@ export function SettingsDialogBody({
 										}
 									/>
 									<GeneralSection general={record.general} onChange={(next) => void write("general", next)} />
+								</SettingsSection>
+							)}
+							{active === "users" && (
+								<SettingsSection title={t("settings.section.users")} testid="section-users">
+									<UsersSection />
 								</SettingsSection>
 							)}
 							{active === "keys" && (

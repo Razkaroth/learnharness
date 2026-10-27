@@ -11,6 +11,7 @@ export const settings = {
 	"settings.section.graph": "Graph",
 	"settings.section.keyboard": "Keyboard",
 	"settings.section.keyboard.hint": "Stored on this device",
+	"settings.section.users": "Users",
 	"settings.section.general": "General",
 	"settings.general.autoUpdate": "Auto-update",
 	"settings.general.autoUpdate.aria": "auto update",

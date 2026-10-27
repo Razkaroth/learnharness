@@ -29,7 +29,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { PATHS, PROMPTS_OVERRIDE_DIR } from "../../config.ts";
+import { PATHS, promptsOverrideDir } from "../../config.ts";
 import { FRAGMENT_RE, isValidSegmentPath, type PromptAgent, type PromptSegmentInfo } from "../core/prompt-segments.ts";
 import { DEFAULT_LANGUAGE, type AppLanguage } from "../core/i18n.ts";
 
@@ -63,7 +63,7 @@ const PRACTICE_SHARED_FRAGMENTS = ["10-voice.md", "15-accuracy.md", "16-mental-m
 
 /** Absolute path for an override file (unchecked — validate first). */
 function overrideFileFor(segmentPath: string): string {
-	return path.join(PROMPTS_OVERRIDE_DIR, ...segmentPath.split("/"));
+	return path.join(promptsOverrideDir(), ...segmentPath.split("/"));
 }
 
 /** Read one override file, or null when absent/invalid — the composition

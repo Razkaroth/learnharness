@@ -17,11 +17,11 @@
  */
 
 import { resolveSettings } from "@/src/core";
-import { effectivePromptSegments, readSettingsRecord } from "@/src/server";
+import { effectivePromptSegments, readSettingsRecord, withUser } from "@/src/server";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+async function handleGET(_req: Request) {
 	const record = readSettingsRecord();
 	const switches = record?.agent?.prompts ?? {};
 	const language = resolveSettings(record).general.language;
@@ -30,3 +30,5 @@ export async function GET() {
 		teacher: effectivePromptSegments("teacher", switches, language),
 	});
 }
+
+export const GET = withUser(handleGET);
