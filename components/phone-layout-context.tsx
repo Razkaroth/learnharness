@@ -20,7 +20,9 @@ export function usePhoneLayout(): LiveLayout {
 function readLayout(): LiveLayout {
 	const coarsePointer = window.matchMedia("(pointer: coarse)").matches;
 	const canHover = window.matchMedia("(hover: hover)").matches;
-	const electron = navigator.userAgent.includes("Electron");
+	// The preload bridge, not the user agent: other Electron hosts (an
+	// editor's embedded browser) have no bridge to widen the window.
+	const electron = window.lh !== undefined;
 	const width = window.innerWidth;
 	return { ...phoneLayout({ width, electron, coarsePointer }), coarsePointer, canHover, viewportWidth: width };
 }
