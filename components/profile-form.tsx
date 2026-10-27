@@ -98,7 +98,7 @@ export function ProfileForm({
 
 			<div className="flex w-full max-w-72 flex-col gap-1.5">
 				<span className="text-xs uppercase tracking-widest text-muted-foreground">Color</span>
-				<div role="radiogroup" aria-label="Color" className="flex justify-between">
+				<div role="radiogroup" aria-label="Color" className="flex justify-between gap-2">
 					{PROFILE_COLORS.map((c) => (
 						<button
 							key={c}

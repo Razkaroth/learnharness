@@ -85,6 +85,7 @@ const isString = (v: unknown): v is string => typeof v === "string";
 
 /** Strict shape guards — anything not matching a W4 ledger shape is skipped. */
 function readValid<T>(file: string, isValid: (v: unknown) => v is T): T[] {
+	purgeLegacyLedgers();
 	assertGraphFormat(); // honest refusal on a newer-stamped data dir
 	return readRawLines(file).filter(isValid);
 }
@@ -309,11 +310,16 @@ function writeSourceMap(map: Record<string, NotesSource>): void {
 	fs.writeFileSync(sourcesFile(), JSON.stringify(map, null, "\t"), "utf-8");
 }
 
-// ─── one-way purges at adapter load: dead ledgers are exactly the confusion
-// the cleanup removes (owner doctrine — nothing reads them, nothing writes
-// them, a stale file lying around is a lie). ────────────────────────────────
-{
+// ─── one-way purges, once per graph dir: dead ledgers are exactly the
+// confusion the cleanup removes (owner doctrine — nothing reads them,
+// nothing writes them, a stale file lying around is a lie). On first read,
+// not at module load: the graph dir is the signed-in profile's. ───────────
+const purgedGraphDirs = new Set<string>();
+
+function purgeLegacyLedgers(): void {
 	const graphDir = path.dirname(LEDGER_FILES.nodes);
+	if (purgedGraphDirs.has(graphDir)) return;
+	purgedGraphDirs.add(graphDir);
 	for (const legacy of ["edges.jsonl", "events.jsonl"]) {
 		const file = path.join(graphDir, legacy);
 		try {

@@ -74,6 +74,10 @@ describe("multi-user profiles", () => {
 		assert.equal(users.usersSnapshot(undefined).existingData, false);
 	});
 
+	it("once claimed, the server layer still loads with no profile active (the /api/users routes import it)", async () => {
+		await import("../src/server/index.ts");
+	});
+
 	it("once claimed, learner paths need an active profile and resolve into its folder", () => {
 		assert.throws(() => config.PATHS.data, config.NoActiveUserError);
 		config.runAsUser(adminId, () => {
