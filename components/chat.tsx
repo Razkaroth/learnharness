@@ -29,6 +29,7 @@ import { blurAfterPointerClick } from "@/components/focus-hygiene";
 import { dockStateKey } from "@/components/dock-state-key";
 import { clearOpeningPrompt, readOpeningPromptEntry, stashOpeningPrompt } from "@/components/opening-prompt";
 import { forwardDockWheel, useDockHeight } from "@/components/dock-height";
+import { DockControls } from "@/components/dock-controls";
 import { QueuedSteersBody, type QueuedSteerLine } from "@/components/queued-steers";
 import { DictationBar, finishDictation, joinDictation, useDictation } from "@/components/dictation";
 import { useFieldCycle } from "@/components/field-cycle";
@@ -2076,6 +2077,36 @@ function DockOverlay({
 			? `practice:${practice.toolCallId}`
 			: "chat";
 
+	// Phone dock controls: Minimize folds to the slim bar; Full screen gives
+	// the open question/problem the whole viewport. A new variant (answered,
+	// submitted, next question) always lands back in the normal dock.
+	const phone = usePhoneLayout().shell === "overlay";
+	const [fullscreen, setFullscreen] = useState(false);
+	const prevModeRef = useRef(mode);
+	if (mode !== prevModeRef.current) {
+		prevModeRef.current = mode;
+		if (fullscreen) setFullscreen(false);
+	}
+	const full = fullscreen && phone && expanded && (!!pending || !!practice);
+	const fullRef = useRef(full);
+	fullRef.current = full;
+	// A Minimize at the bottom must survive the first pixels of scrolling
+	// up; the at-bottom re-open waits until the learner has left the bottom.
+	const minimizedHereRef = useRef(false);
+	if (expanded) minimizedHereRef.current = false;
+	const frameRef = useRef<HTMLDivElement>(null);
+	useEffect(() => {
+		if (!full) return;
+		const onKeyDown = (e: KeyboardEvent) => {
+			if (e.key !== "Escape" || e.defaultPrevented) return;
+			e.preventDefault();
+			e.stopPropagation();
+			setFullscreen(false);
+		};
+		document.addEventListener("keydown", onKeyDown);
+		return () => document.removeEventListener("keydown", onKeyDown);
+	}, [full]);
+
 	// The plan marginalia's flank width (owner, plan-placement round): from
 	// the DOCK container's right edge to the block's right edge — the bare
 	// diagram's canvas. Tracked LIVE by a ResizeObserver on the block
@@ -2143,6 +2174,7 @@ function DockOverlay({
 		scrollRef, blockRef, viewportRef, bodyRef, shellRef, contentRef,
 		expanded, enabled: !!pending || !!practice, mode, onScrollbarInset: setSbInset, onHeight: offer,
 		availableCap: keyboard.dockMaxHeight,
+		frameRef: full ? frameRef : undefined,
 	});
 
 	// GROWTH MUTE (owner round, 2026-10-05 — the generation churn): during a
@@ -2179,7 +2211,9 @@ function DockOverlay({
 		const root = blockRef.current;
 		const el = scrollRef.current;
 		if (!root || !el) return;
-		const onWheel = (e: WheelEvent) => forwardDockWheel(e, root, el);
+		const onWheel = (e: WheelEvent) => {
+			if (!fullRef.current) forwardDockWheel(e, root, el);
+		};
 		root.addEventListener("wheel", onWheel, { passive: false });
 		return () => root.removeEventListener("wheel", onWheel);
 	}, [scrollRef]);
@@ -2265,6 +2299,8 @@ function DockOverlay({
 				// needs the distance AND stick-to-bottom agreeing the learner
 				// left the bottom.
 				if (d > COLLAPSE_DIST && !expandIntentRef.current && !atBottomRef.current) setExpanded(false);
+			} else if (minimizedHereRef.current) {
+				if (d > COLLAPSE_DIST) minimizedHereRef.current = false;
 			} else if (d < EXPAND_DIST) {
 				// Teach checks stay collapsed until the learner opens them (W5): the
 				// at-bottom auto-expand would pop the form over the teaching.
@@ -2282,7 +2318,7 @@ function DockOverlay({
 	// value (the iso effect's getAnimations guard wraps every call).
 	const measureBlock = () => {
 		const b = blockRef.current;
-		if (b) offer(b.getBoundingClientRect().height);
+		if (b && !fullRef.current) offer(b.getBoundingClientRect().height);
 	};
 
 	// The opening variant of a session appears instantly — the fade/rise is
@@ -2340,12 +2376,22 @@ function DockOverlay({
 	});
 
 	return (
-		<div className="pointer-events-none absolute inset-x-0 bottom-0" style={{ right: sbInset }}>
-			<div className="h-24 bg-gradient-to-t from-background via-background/85 to-transparent" />
+		<div
+			ref={frameRef}
+			data-testid="dock-overlay"
+			data-fullscreen={full ? "" : undefined}
+			className={
+				full
+					? "pointer-events-auto fixed inset-x-0 top-0 z-40 flex flex-col bg-background pt-[env(safe-area-inset-top)]"
+					: "pointer-events-none absolute inset-x-0 bottom-0"
+			}
+			style={full ? { bottom: "var(--lh-keyboard-inset, 0px)" } : { right: sbInset }}
+		>
+			{!full && <div className="h-24 bg-gradient-to-t from-background via-background/85 to-transparent" />}
 			<div
 				ref={blockRef}
-				className="relative bg-background pb-5"
-				style={{ paddingBottom: "calc(1.25rem + var(--lh-keyboard-inset, 0px))" }}
+				className={full ? "relative mt-auto bg-background pb-5" : "relative bg-background pb-5"}
+				style={full ? undefined : { paddingBottom: "calc(1.25rem + var(--lh-keyboard-inset, 0px))" }}
 			>
 				<div className={DOCK}>
 					<div ref={viewportRef} data-dock-viewport="" className="pointer-events-auto">
@@ -2377,7 +2423,18 @@ function DockOverlay({
 							claim={revealPending}
 						/>
 					)}
-					<div ref={shellRef} className="pointer-events-auto overflow-hidden rounded-2xl border bg-card shadow-lg">
+					<div ref={shellRef} className="pointer-events-auto relative overflow-hidden rounded-2xl border bg-card shadow-lg">
+						{phone && expanded && (pending || practice) && (
+							<DockControls
+								fullscreen={full}
+								onMinimize={() => {
+									minimizedHereRef.current = true;
+									setFullscreen(false);
+									setExpanded(false);
+								}}
+								onToggleFullscreen={() => setFullscreen(!full)}
+							/>
+						)}
 						{/* Include descendant margins (notably practice thinking's
 						    bottom margin) in the natural content measurement. */}
 						<div
@@ -2443,7 +2500,7 @@ function DockOverlay({
 					    overlay is none by default. The isAtBottom/scrollToBottom
 					    context still reaches it — DockOverlay is a Conversation
 					    child. */}
-					<ConversationScrollButton className="pointer-events-auto bottom-full mb-2" />
+					{!full && <ConversationScrollButton className="pointer-events-auto bottom-full mb-2" />}
 				</div>
 				{/* The plan marginalia (owner, plan-placement round): the bare
 				    diagram in the band's right flank — boundaless, meet-fitted, part
@@ -2455,7 +2512,7 @@ function DockOverlay({
 				    the flank; below MARGIN_MIN_W it FADES (never pops away — no
 				    mid-question unmount), and widening past the floor fades it
 				    back in. */}
-				{pending && plan && (
+				{pending && plan && !full && (
 					<Hint label={t("chat.header.openPlan")} side="bottom">
 <button
 						type="button"

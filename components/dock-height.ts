@@ -95,7 +95,7 @@ interface DockHeightRefs {
 
 export function useDockHeight({
 	scrollRef, blockRef, viewportRef, bodyRef, shellRef, contentRef,
-	expanded, enabled, mode, onScrollbarInset, onHeight, availableCap,
+	expanded, enabled, mode, onScrollbarInset, onHeight, availableCap, frameRef,
 }: DockHeightRefs & {
 	expanded: boolean;
 	enabled: boolean;
@@ -105,17 +105,22 @@ export function useDockHeight({
 	/** Settled visible block height, fed through the existing reserve policy. */
 	onHeight: (height: number) => void;
 	availableCap?: number;
+	/** Full screen: budget against this frame instead of the transcript
+	 *  column. The frame already clears the keyboard, has no scrollbar, and
+	 *  its height is not transcript reserve. */
+	frameRef?: RefObject<HTMLElement | null>;
 }) {
 	const measure = useCallback(() => {
-		const column = scrollRef.current;
+		const frame = frameRef?.current ?? null;
+		const column = frame ?? scrollRef.current;
 		const block = blockRef.current;
 		const viewport = viewportRef.current;
 		const body = bodyRef.current;
 		const shell = shellRef.current;
 		const content = contentRef.current;
 		if (!column || !block || !viewport || !body || !shell || !content) return;
-		onScrollbarInset(Math.round((column.offsetWidth - column.clientWidth) / 2));
-		if (enabled) syncDockHeight({ column, block, viewport, body, shell, content }, expanded, availableCap);
+		onScrollbarInset(frame ? 0 : Math.round((column.offsetWidth - column.clientWidth) / 2));
+		if (enabled) syncDockHeight({ column, block, viewport, body, shell, content }, expanded, frame ? undefined : availableCap);
 		else {
 			block.style.removeProperty("--dock-max-h");
 			viewport.style.removeProperty("max-height");
@@ -125,15 +130,15 @@ export function useDockHeight({
 		// ResizeObserver runs even when only a child field changed and React
 		// did not rerender DockOverlay. Keep its transcript reserve current,
 		// but never report a mid-morph height.
-		if (shell.getAnimations().length === 0) onHeight(block.getBoundingClientRect().height);
-	}, [scrollRef, blockRef, viewportRef, bodyRef, shellRef, contentRef, expanded, enabled, onScrollbarInset, onHeight, availableCap]);
+		if (!frame && shell.getAnimations().length === 0) onHeight(block.getBoundingClientRect().height);
+	}, [scrollRef, blockRef, viewportRef, bodyRef, shellRef, contentRef, expanded, enabled, onScrollbarInset, onHeight, availableCap, frameRef]);
 
 	// Imperative constraints land before the overlay's later layout effect
 	// measures its morph target/reserve, and before paint (including reveal).
 	useIsoLayoutEffect(measure);
 	useIsoLayoutEffect(() => {
 		const observer = new ResizeObserver(measure);
-		for (const el of [scrollRef.current, blockRef.current, viewportRef.current, bodyRef.current, contentRef.current]) {
+		for (const el of [frameRef?.current ?? scrollRef.current, blockRef.current, viewportRef.current, bodyRef.current, contentRef.current]) {
 			if (el) observer.observe(el);
 		}
 		const question = expanded ? contentRef.current?.querySelector("[data-dock-scroll-area]") : null;
@@ -143,7 +148,7 @@ export function useDockHeight({
 			observer.disconnect();
 			window.removeEventListener("resize", measure);
 		};
-	}, [measure, mode, expanded, scrollRef, blockRef, viewportRef, bodyRef, contentRef]);
+	}, [measure, mode, expanded, scrollRef, blockRef, viewportRef, bodyRef, contentRef, frameRef]);
 }
 
 /** Overlay and transcript are siblings. Keep native scrolling in an actual
