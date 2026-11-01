@@ -27,7 +27,7 @@
  * EXPAND icon (opens the session overlay) when a chat page is mounted.
  */
 
-import { cloneElement, isValidElement, useEffect, useRef, useState, type ComponentProps, type ReactNode } from "react";
+import { cloneElement, isValidElement, useEffect, useLayoutEffect, useRef, useState, type ComponentProps, type ReactNode } from "react";
 import { CheckIcon, CopyIcon, MaximizeIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -381,15 +381,39 @@ export function MarkdownBlockquote(props: ComponentProps<"blockquote"> & ExtraPr
 
 // ─── Tables (the Streamdown `table` override) ────────────────────────────────
 
+/** Copies each column's heading onto that column's body cells as
+ *  data-label: the phone layout (globals.css) stacks rows into cards and
+ *  prefixes every value but the first with its heading. */
+export function stampCellLabels(table: HTMLTableElement) {
+	const headings = Array.from(table.querySelectorAll("thead th"), (th) => th.textContent?.trim() ?? "");
+	for (const row of Array.from(table.querySelectorAll("tbody tr"))) {
+		Array.from(row.children).forEach((cell, i) => {
+			const label = headings[i] ?? "";
+			if (!label) cell.removeAttribute("data-label");
+			else if (cell.getAttribute("data-label") !== label) cell.setAttribute("data-label", label);
+		});
+	}
+}
+
 /** A plain PROSE table: no wrapper box, no button rows — just the table
  *  (streamdown's inner cells keep their padding/typography; the hairline
  *  rules live in globals.css on the data-streamdown attributes) inside a
- *  horizontal-scroller for wide ones, with the corner copy. The copy
+ *  horizontal-scroller for wide ones (phones stack rows into cards
+ *  instead), with the corner copy. The copy
  *  serializes the REAL DOM table (the library's own extractor → Markdown). */
 export function MarkdownTable(props: ComponentProps<"table"> & ExtraProps) {
 	const t = useT();
 	const { children, node, ...rest } = props;
 	const ref = useRef<HTMLTableElement>(null);
+	// Streaming rewrites rows and cells in place; keep the labels current.
+	useLayoutEffect(() => {
+		const table = ref.current;
+		if (!table) return;
+		stampCellLabels(table);
+		const observer = new MutationObserver(() => stampCellLabels(table));
+		observer.observe(table, { childList: true, subtree: true, characterData: true });
+		return () => observer.disconnect();
+	}, []);
 	return (
 		<div className="group/md relative my-4" data-testid="md-table">
 			<CopyCorner
