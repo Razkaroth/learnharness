@@ -1,5 +1,5 @@
 import { Agent, type AgentEvent, type AgentMessage, type AgentTool } from "@earendil-works/pi-agent-core";
-import type { AssistantMessage, ToolResultMessage, Usage } from "@earendil-works/pi-ai";
+import type { AssistantMessage, StreamFunction, ToolChoice, ToolResultMessage, Usage } from "@earendil-works/pi-ai";
 import { randomUUID } from "node:crypto";
 import { APP_IDENTITY, piEngineFor, type PiEngine } from "../models.ts";
 import { usageWasAdmitted } from "../subscription-request-cycle.ts";
@@ -41,6 +41,10 @@ export interface SubagentRunOptions {
 	onAssistantMessage?: (message: AssistantMessage, step: number) => void;
 	/** Extra stop rule (extractor: stop after a clean submit). */
 	shouldStop?: (message: AssistantMessage, toolResults: ToolResultMessage[]) => boolean;
+	/** Provider tool selection for every call of this run. "none" keeps the
+	 *  tools declared (a transcript with tool calls needs them on some
+	 *  providers) while forbidding new calls. Absent = provider default. */
+	toolChoice?: ToolChoice;
 	/** Debug: when set AND LH_PROVIDER_EVENTS=1, raw provider stream
 	 *  events append to data/debug/provider-events/<chatId>.jsonl (context
 	 *  "job:<role>"). Absent or env-off → no observer.
@@ -62,6 +66,14 @@ export function subagentEngine(role: ModelRole, override?: PiEngine): PiEngine {
 	return override ?? piEngineFor(role);
 }
 
+function withToolChoice(streamFn: StreamFunction, toolChoice: ToolChoice | undefined): StreamFunction {
+	if (!toolChoice) return streamFn;
+	return (model, context, options) => {
+		const requestOptions = { ...options, toolChoice };
+		return streamFn(model, context, requestOptions);
+	};
+}
+
 export async function runSubagent(tools: AgentTool<any, any>[], opts: SubagentRunOptions): Promise<SubagentRunResult> {
 	const engine = subagentEngine(opts.role, opts.engine);
 	let turns = 0;
@@ -80,7 +92,7 @@ export async function runSubagent(tools: AgentTool<any, any>[], opts: SubagentRu
 			tools,
 			messages: opts.messages ?? [],
 		},
-		streamFn: backgroundCaptureStream(engine.streamFn, capture),
+		streamFn: backgroundCaptureStream(withToolChoice(engine.streamFn, opts.toolChoice), capture),
 		...(providerEvents ? { onProviderStreamEvent: providerEvents } : {}),
 		// 0.87.1: shouldStopAfterTurn → finishTurn (same call point; "end"
 		// exits before the steering poll, exactly the old boolean-true).

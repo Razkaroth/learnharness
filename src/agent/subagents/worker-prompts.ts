@@ -11,6 +11,7 @@ import { es } from "./locales/es.ts";
 
 export type WorkerPromptKey =
 	| "researcher"
+	| "researcherFinalize"
 	| "demoBuilder"
 	| "visualMaker"
 	| "pdfReader"

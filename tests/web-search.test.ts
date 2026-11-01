@@ -8,7 +8,7 @@ import { describe, it } from "node:test";
 import { createWebTools } from "../src/agent/tools/web.ts";
 import { jobTools } from "../src/agent/tools/jobs.ts";
 import { runResearcherAgent } from "../src/agent/subagents/researcher.ts";
-import { createFauxCore, fauxAssistantMessage, fauxText, fauxToolCall, type FauxResponseStep } from "@earendil-works/pi-ai";
+import { createFauxCore, fauxAssistantMessage, fauxText, fauxToolCall, getCurrentTools, type FauxResponseStep, type SimpleStreamOptions, type StreamFunction } from "@earendil-works/pi-ai";
 import type { JobStore } from "../src/core/ports.ts";
 import type { JobRecord } from "../src/core/contracts.ts";
 import type { SearchHit, SearchProvider } from "../src/core/search.ts";
@@ -20,6 +20,18 @@ function stubProvider(hits: SearchHit[] = [{ title: "t", url: "https://e.com/", 
 			return hits;
 		},
 	};
+}
+
+/** A faux engine that records each call's provider tool selection. */
+function recordingEngine(steps: FauxResponseStep[]) {
+	const faux = createFauxCore({});
+	faux.setResponses(steps);
+	const toolChoices: (string | undefined)[] = [];
+	const streamFn: StreamFunction = (model, context, options) => {
+		toolChoices.push((options as SimpleStreamOptions | undefined)?.toolChoice);
+		return faux.streamSimple(model, context, options);
+	};
+	return { engine: { model: faux.getModel(), streamFn }, toolChoices };
 }
 
 describe("web_search on the injected port (web.ts)", () => {
@@ -105,6 +117,58 @@ describe("web_search on the injected port (web.ts)", () => {
 		} finally {
 			globalThis.fetch = realFetch;
 		}
+	});
+});
+
+describe("researcher final brief", () => {
+	const brief = "## Summary\nVerified finding from the collected sources.";
+
+	it("a run that spends all 20 calls on tools gets one tool-free call for the brief", async () => {
+		const searches: FauxResponseStep[] = Array.from({ length: 20 }, (_, i) => () =>
+			fauxAssistantMessage([fauxToolCall("web_search", { query: `facet ${i}` }, { id: `search${i}` })], { stopReason: "toolUse" }));
+		const { engine, toolChoices } = recordingEngine([...searches, (context) => {
+			assert.ok(context.messages.some((m) => m.role === "toolResult" && m.toolCallId === "search19"));
+			const tools = getCurrentTools(context.messages).map((t) => t.name);
+			assert.ok(tools.includes("web_search") && tools.includes("web_fetch"), "tools stay declared");
+			assert.match(JSON.stringify(context.messages.at(-1)), /research budget is used up/);
+			return fauxAssistantMessage([fauxText(brief)]);
+		}]);
+		let usageCalls = 0;
+		let toolCalls = 0;
+		assert.equal(await runResearcherAgent("Verify a finding", {
+			engine, search: () => stubProvider(),
+			onUsage: () => { usageCalls++; }, onToolStart: () => { toolCalls++; },
+		}), brief);
+		assert.deepEqual(toolChoices, [...Array(20).fill(undefined), "none"]);
+		assert.equal(usageCalls, 21, "the final call reaches the money channel");
+		assert.equal(toolCalls, 20);
+	});
+
+	it("a clean end without text gets exactly one tool-free call", async () => {
+		const { engine, toolChoices } = recordingEngine([
+			() => fauxAssistantMessage([]),
+			() => fauxAssistantMessage([fauxText(brief)]),
+		]);
+		assert.equal(await runResearcherAgent("Verify a finding", { engine }), brief);
+		assert.deepEqual(toolChoices, [undefined, "none"]);
+	});
+
+	it("an empty final call ends the run instead of looping", async () => {
+		const { engine, toolChoices } = recordingEngine([
+			() => fauxAssistantMessage([]),
+			() => fauxAssistantMessage([]),
+			() => fauxAssistantMessage([fauxText("never reached")]),
+		]);
+		assert.equal(await runResearcherAgent("Verify a finding", { engine }), "");
+		assert.equal(toolChoices.length, 2);
+	});
+
+	it("a provider error propagates without a final call", async () => {
+		const { engine, toolChoices } = recordingEngine([
+			() => fauxAssistantMessage([], { stopReason: "error", errorMessage: "synthetic provider failure" }),
+		]);
+		await assert.rejects(runResearcherAgent("Verify a finding", { engine }), /synthetic provider failure/);
+		assert.equal(toolChoices.length, 1);
 	});
 });
 

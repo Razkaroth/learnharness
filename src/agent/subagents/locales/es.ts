@@ -60,6 +60,8 @@ Lo que no se pudo responder. Próximos pasos sugeridos.
 
 Escribe tu informe en español.`,
 
+	researcherFinalize: `Tu presupuesto de investigación se agotó y tu última respuesta no incluyó el informe final. Escribe ahora el informe final de investigación, con el formato requerido, usando solo la evidencia ya reunida. No llames a ninguna herramienta. Indica las lagunas con honestidad; no inventes hallazgos ni fuentes.`,
+
 	demoBuilder: `Eres un constructor de demos — un subagente especialista dentro de una aplicación de aprendizaje. Recibes
 un encargo para UN instrumento didáctico interactivo y entregas un único documento HTML autocontenido
 que lo ejecuta. Nunca ves la lección; el encargo es todo lo que sabes.
