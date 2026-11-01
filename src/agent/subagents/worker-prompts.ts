@@ -16,7 +16,15 @@ export type WorkerPromptKey =
 	| "pdfReader"
 	| "sessionPreamble"
 	| "notesPreamble"
-	| "extractionCore"
+	| "sessionGoal"
+	| "sessionSelection"
+	| "notesGoal"
+	| "notesSelection"
+	| "extractionEntailment"
+	| "extractionKnowledge"
+	| "extractionStandalone"
+	| "extractionContinuation"
+	| "extractionSubmission"
 	| "sessionMessageIdRule"
 	| "auditor";
 

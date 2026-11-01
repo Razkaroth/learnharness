@@ -63,9 +63,6 @@ export const nav = {
 
 	"nav.minimal.chains": "Chains",
 	"nav.minimal.chains.hint": "Every reasoning chain",
-	"nav.minimal.import": "Import notes…",
-	"nav.minimal.import.hint": "Import notes into the graph",
-	"nav.minimal.importing": "Importing…",
 
 	"nav.diagram.aria": "Diagram focus",
 	"nav.diagram.title": "Diagram",
@@ -151,4 +148,11 @@ export const nav = {
 	"nav.kbd.question-prev-row": "Question · previous row",
 	"nav.kbd.question-pick-row": "Question · pick row",
 	"nav.kbd.question-submit": "Question · submit",
+
+	// Update banner dismiss
+	"nav.update.dismiss": "Dismiss update notification",
+
+	// Stats bar (CLI and cache)
+	"nav.stats.cliWindow": "Window reported by Claude Code; may be lower for auto-compaction.",
+	"nav.stats.cacheHitRate": "Cache hit rate",
 } as const;

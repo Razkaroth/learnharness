@@ -134,6 +134,13 @@ export const artifacts = {
 	"artifacts.chains.selectChain": "Select chain {name}",
 	"artifacts.chains.expandChain": "Expand chain {name}",
 	"artifacts.chains.selectNode": "Select node {name}",
+	"artifacts.chains.selectSource": "Select source {label}",
+	"artifacts.chains.expandSource": "Expand source {label}",
+	"artifacts.chains.sources.one": "{n} source",
+	"artifacts.chains.sources.other": "{n} sources",
+	"artifacts.chains.folders.one": "{n} folder",
+	"artifacts.chains.folders.other": "{n} folders",
+	"artifacts.chains.deleteSourcesAria": "Delete selected sources and folders",
 	"artifacts.chains.selectedSummary": "{nodes} → {chains}",
 	"artifacts.chains.clear": "Clear",
 	"artifacts.chains.done": "Done",
@@ -161,4 +168,19 @@ export const artifacts = {
 	"artifacts.activity.probeDone": "Concluding the assessment…",
 	"artifacts.activity.question": "Writing a question…",
 	"artifacts.activity.working": "Working…",
+
+	// Source folders (chain table)
+	"artifacts.sources.folderName": "Folder name",
+	"artifacts.sources.nameAria": "Source or folder name",
+	"artifacts.sources.rename": "Rename",
+	"artifacts.sources.selectFolder": "Select folder {name}",
+	"artifacts.sources.selectFolderContents": "Select contents of {name}",
+	"artifacts.sources.expandFolder": "Expand folder {name}",
+	"artifacts.sources.moveToRoot": "Move outside folders",
+
+	// Source organization (client fallbacks)
+	"artifacts.sources.readFailed": "Could not read source organization.",
+	"artifacts.sources.saveFailed": "Could not save source organization.",
+	"artifacts.sources.deleteFailed": "Could not delete sources.",
+	"artifacts.sources.addFolder": "Add folder",
 } as const;

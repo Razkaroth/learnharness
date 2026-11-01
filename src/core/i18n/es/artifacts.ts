@@ -135,6 +135,13 @@ export const artifacts: Record<keyof typeof en, string> = {
 	"artifacts.chains.selectChain": "Seleccionar cadena {name}",
 	"artifacts.chains.expandChain": "Expandir cadena {name}",
 	"artifacts.chains.selectNode": "Seleccionar nodo {name}",
+	"artifacts.chains.selectSource": "Seleccionar fuente {label}",
+	"artifacts.chains.expandSource": "Expandir fuente {label}",
+	"artifacts.chains.sources.one": "{n} fuente",
+	"artifacts.chains.sources.other": "{n} fuentes",
+	"artifacts.chains.folders.one": "{n} carpeta",
+	"artifacts.chains.folders.other": "{n} carpetas",
+	"artifacts.chains.deleteSourcesAria": "Eliminar fuentes y carpetas seleccionadas",
 	"artifacts.chains.selectedSummary": "{nodes} → {chains}",
 	"artifacts.chains.clear": "Limpiar",
 	"artifacts.chains.done": "Listo",
@@ -162,4 +169,19 @@ export const artifacts: Record<keyof typeof en, string> = {
 	"artifacts.activity.probeDone": "Concluyendo la evaluación…",
 	"artifacts.activity.question": "Escribiendo una pregunta…",
 	"artifacts.activity.working": "Trabajando…",
+
+	// Source folders (chain table)
+	"artifacts.sources.folderName": "Nombre de la carpeta",
+	"artifacts.sources.nameAria": "Nombre de la fuente o carpeta",
+	"artifacts.sources.rename": "Renombrar",
+	"artifacts.sources.selectFolder": "Seleccionar carpeta {name}",
+	"artifacts.sources.selectFolderContents": "Seleccionar el contenido de {name}",
+	"artifacts.sources.expandFolder": "Expandir carpeta {name}",
+	"artifacts.sources.moveToRoot": "Mover fuera de las carpetas",
+
+	// Source organization (client fallbacks)
+	"artifacts.sources.readFailed": "No se pudo leer la organización de fuentes.",
+	"artifacts.sources.saveFailed": "No se pudo guardar la organización de fuentes.",
+	"artifacts.sources.deleteFailed": "No se pudieron eliminar las fuentes.",
+	"artifacts.sources.addFolder": "Añadir carpeta",
 };

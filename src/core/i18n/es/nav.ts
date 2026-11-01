@@ -64,9 +64,6 @@ export const nav: Record<keyof typeof en, string> = {
 
 	"nav.minimal.chains": "Cadenas",
 	"nav.minimal.chains.hint": "Todas las cadenas de razonamiento",
-	"nav.minimal.import": "Importar notas…",
-	"nav.minimal.import.hint": "Importar notas al grafo",
-	"nav.minimal.importing": "Importando…",
 
 	"nav.diagram.aria": "Diagrama ampliado",
 	"nav.diagram.title": "Diagrama",
@@ -152,4 +149,11 @@ export const nav: Record<keyof typeof en, string> = {
 	"nav.kbd.question-prev-row": "Pregunta · fila anterior",
 	"nav.kbd.question-pick-row": "Pregunta · elegir fila",
 	"nav.kbd.question-submit": "Pregunta · enviar",
+
+	// Update banner dismiss
+	"nav.update.dismiss": "Descartar aviso de actualización",
+
+	// Stats bar (CLI and cache)
+	"nav.stats.cliWindow": "Ventana reportada por Claude Code; puede ser menor por la compactación automática.",
+	"nav.stats.cacheHitRate": "Tasa de aciertos de caché",
 };

@@ -8,7 +8,11 @@ export * from "./chat-handler.ts";
 export * from "./events-stream.ts";
 export * from "./chats.ts";
 export * from "./graph.ts";
+export * from "./source-organization.ts";
+export * from "./source-deletion.ts";
 export { NotesImportError } from "../agent/subagents/extraction.ts";
+export { convertPdf } from "../agent/subagents/pdf-ops.ts";
+export { joinPages } from "../agent/subagents/pdf-markdown.ts";
 export * from "./commit-positions.ts";
 export * from "./jobs.ts";
 export * from "./stores.ts";
@@ -48,3 +52,8 @@ export { sessionCost } from "./pricing.ts";
 // Multi-user profiles (2026-10-27): sessions, permissions, the claim, and
 // the withUser route wrapper.
 export * from "./users.ts";
+export { claudeCodeInstallationResponse } from "./claude-code.ts";
+// The custom endpoint module (registers into piModels() + probes for models).
+// No import side effects; the boot sync lives in stores.ts.
+export * from "./custom-provider.ts";
+export { customProviderGet, customProviderMutation } from "./custom-provider-http.ts";

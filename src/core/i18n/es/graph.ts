@@ -94,10 +94,15 @@ export const graph: Record<keyof typeof en, string> = {
 	"graph.coverage.tokens": "{tokens} tokens",
 
 	// Notes import errors
-	"graph.import.invalidResponse": "Respuesta de importación no válida. Vuelve a intentar con el archivo.",
-	"graph.import.requestFailed": "Falló la solicitud de importación (HTTP {status}). Vuelve a intentar con el archivo.",
+	"graph.import.invalidResponse": "Respuesta de importación no válida. Revisa el grafo antes de volver a intentarlo.",
+	"graph.import.requestFailed": "Falló la solicitud de importación (HTTP {status}). Revisa el grafo antes de volver a intentarlo.",
 	"graph.import.requestFailedDetail":
-		"Falló la solicitud de importación (HTTP {status}): {detail}. Vuelve a intentar con el archivo.",
+		"Falló la solicitud de importación (HTTP {status}): {detail} Revisa el grafo antes de volver a intentarlo.",
+	"graph.import.unsupported": "Formato no compatible o ruta relativa no segura.",
+	"graph.import.tooBig": "Demasiado grande. Máximo 25 MB.",
+	"graph.import.menu": "Importar notas",
+	"graph.import.files": "Archivos",
+	"graph.import.folder": "Carpeta",
 
 	// Delete dialogs (shared)
 	"graph.delete.cancel": "Cancelar",
@@ -125,4 +130,24 @@ export const graph: Record<keyof typeof en, string> = {
 	"graph.deleteNode.permanence.other": "Esto elimina los {n} nodos de forma permanente — no se puede deshacer.",
 	"graph.deleteNode.extractionRunning":
 		"Hay una extracción en curso — inténtalo de nuevo cuando se vacíe el panel de actividad.",
+
+	// Delete sources dialog
+	"graph.deleteSource.aria": "Eliminar fuentes",
+	"graph.deleteSource.title": "¿Eliminar las fuentes y carpetas seleccionadas?",
+	"graph.deleteSource.more": ", y {n} más",
+	"graph.deleteSource.contributions": "Elimina las contribuciones de estas fuentes a las proposiciones y cadenas de razonamiento. El conocimiento respaldado por otras fuentes se conserva; el que solo respaldan estas fuentes se elimina.",
+	"graph.deleteSource.records": "Se eliminan los registros de fuentes importadas, pero los archivos originales en disco nunca se modifican. Las carpetas seleccionadas solo se eliminan si están vacías; las carpetas que necesitan las sesiones conservadas permanecen.",
+	"graph.deleteSource.sessions.one": "Eliminar también {n} sesión seleccionada",
+	"graph.deleteSource.sessions.other": "Eliminar también {n} sesiones seleccionadas",
+	"graph.deleteSource.sessionsHint": "Sin marcar, las conversaciones se quedan en sus carpetas actuales y pueden volver a extraerse. En cualquier caso, se borran sus contribuciones al grafo y su cobertura de extracción. Si lo marcas, también se eliminan de forma permanente sus mensajes y trabajos en segundo plano.",
+
+	// Delete dialog: empty folders
+	"graph.deleteNode.title.withFolders": "¿Eliminar nodos y quitar carpetas vacías?",
+	"graph.deleteNode.title.foldersOnly": "¿Quitar carpetas vacías?",
+	"graph.deleteNode.emptyFolders": "Carpetas vacías: {names}",
+	"graph.deleteNode.foldersOnlyNamed": "Solo se quitan las carpetas vacías indicadas.",
+	"graph.deleteNode.kept": "Se conservan las sesiones, los registros de fuentes importadas y las carpetas que no están vacías.",
+
+	// Delete dialog: folder removal fallback
+	"graph.deleteNode.folderRemovalUnavailable": "No se pueden quitar carpetas.",
 };

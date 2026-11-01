@@ -7,6 +7,8 @@ import { finishDictation, isDictationActive, joinDictation, useDictationTarget }
 import { useEnterSubmits } from "@/components/enter-submits";
 import { confidenceHitHeight, enterKey } from "@/components/phone-layout";
 import { usePhoneLayout } from "@/components/phone-layout-context";
+import { PathInput } from "@/components/path-input";
+import { MalformedQuestion } from "@/components/malformed-question";
 import { ToolContentResponse } from "@/components/ai-elements/message";
 import { cn } from "@/lib/utils";
 import { useT } from "@/components/i18n";
@@ -136,11 +138,7 @@ export function QuestionDock({
 	const parsed =
 		canonical === "quiz" ? parseQuizInput(input) : canonical === "explain" ? parseExplainInput(input) : parseAskInput(input);
 	if (!parsed) {
-		return (
-			<div data-testid="malformed-question" className="rounded-xl border border-dashed bg-card/60 p-3 text-sm text-muted-foreground">
-				{t("composer.dock.malformed")}
-			</div>
-		);
+		return <MalformedQuestion />;
 	}
 	return (
 		<>
@@ -451,8 +449,8 @@ function QuestionDockForm({
 	   expanded — collapsed, the bar's native Enter expands it. */
 	const [kbdIdx, setKbdIdx] = useState<number | null>(null);
 	const rootRef = useRef<HTMLDivElement>(null);
-	const otherInputRef = useRef<HTMLInputElement>(null);
-	const thinkingRef = useRef<HTMLTextAreaElement>(null);
+	const otherInputRef = useRef<HTMLDivElement>(null);
+	const thinkingRef = useRef<HTMLDivElement>(null);
 	// One row past the options is the trailing row: quiz → don't-know,
 	// ask → Other (a question never has both). Text mode (ask/explain)
 	// has no rows — the composer IS the answer surface.
@@ -485,7 +483,7 @@ function QuestionDockForm({
 	const focusRow = (idx: number) => {
 		const row = rootRef.current?.querySelector(`[data-kbdrow="${idx}"]`) as HTMLElement | null;
 		if (!row) return;
-		const el = (row.querySelector("input") as HTMLElement | null) ?? row;
+		const el = (row.querySelector("input, [data-file-path-input]") as HTMLElement | null) ?? row;
 		el.focus();
 	};
 
@@ -708,11 +706,12 @@ function QuestionDockForm({
 										</span>
 									)}
 								</span>
-								<input
+								<PathInput
 									ref={otherInputRef}
+									singleLine
 									value={other}
-									onChange={(e) => {
-										setOther(e.target.value);
+									onValueChange={(value) => {
+										setOther(value);
 										// Typing selects the row — displacing in
 										// single-select, alongside the siblings in multi.
 										setSel((prev) => (prev.otherSelected ? prev : toggleOther(selectMode, prev)));
@@ -872,11 +871,11 @@ function QuestionDockForm({
 						{qd.mode === "text" ? t("composer.dock.yourAnswer") : t("composer.dock.yourThinking")}
 					</div>
 					{qd.mode === "text" ? (
-						<textarea
+						<PathInput
 							value={text}
-							onChange={(e) => {
-								answerTextRef.current = e.target.value;
-								setText(e.target.value);
+							onValueChange={(value) => {
+								answerTextRef.current = value;
+								setText(value);
 							}}
 							onKeyDown={(e) => {
 								// Esc ends dictation (the dictate decisions: click-again
@@ -897,16 +896,15 @@ function QuestionDockForm({
 								}
 							}}
 							placeholder={t("composer.dock.answerPlaceholder")}
-							rows={1}
 							className="field-sizing-content lh-input max-h-48 min-h-10 w-full resize-none bg-transparent px-2.5 py-2 outline-none placeholder:text-muted-foreground"
 						/>
 					) : (
-						<textarea
+						<PathInput
 							ref={thinkingRef}
 							value={thinking}
-							onChange={(e) => {
-								thinkingTextRef.current = e.target.value;
-								setThinking(e.target.value);
+							onValueChange={(value) => {
+								thinkingTextRef.current = value;
+								setThinking(value);
 							}}
 							onKeyDown={(e) => {
 								// Esc ends dictation (the dictate decisions: click-again
@@ -927,7 +925,6 @@ function QuestionDockForm({
 								}
 							}}
 							placeholder={t("composer.dock.thinkingPlaceholder")}
-							rows={1}
 							className={cn(
 								"field-sizing-content lh-input max-h-48 w-full resize-none bg-transparent px-2.5 py-2 outline-none placeholder:text-muted-foreground/70",
 								// Phase-scaled prominence: teaching invites depth,

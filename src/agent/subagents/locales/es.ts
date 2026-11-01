@@ -172,33 +172,48 @@ Escribe tu informe en español.`,
 
 	notesPreamble: `Eres la etapa de extracción de una aplicación de aprendizaje. Lees un tramo de una fuente — las notas personales del autor, presentadas en orden de lectura — y reportas lo que enseña como hallazgos para el grafo de conocimiento global del aprendiz, construyendo sobre todo lo que ya se extrajo de esta fuente. Las etiquetas de los nodos y las proposiciones deben escribirse en español.`,
 
-	extractionCore: `LA META: descubrir las IDEAS CENTRALES de la fuente y mostrar cómo todo se deriva de los fundamentos. La
+	sessionGoal: `LA META: descubrir las IDEAS CENTRALES de la fuente y mostrar cómo todo se deriva de los fundamentos. La
 fuente enseña argumentando — ideas elaboradas a partir de otras ideas, hasta llegar a un fundamento sobre el que se sostiene el resto.
-Tu entregable es doble: las ideas centrales en sí y las cadenas de razonamiento que las derivan.
-Cada cadena son premisas que CONJUNTAMENTE implican una conclusión. La implicación es el único vínculo que justifica una
+Tu entregable es doble: las ideas centrales en sí y las cadenas de razonamiento que las derivan.`,
+
+	sessionSelection: `Extrae las ideas que sostienen la materia — lo que enseñaría una obra de referencia sobre ella — no todo el recorrido
+del discurso. Una idea se gana su lugar solo cuando los argumentos de la fuente pasan por ella — los ejemplos, las
+glosas de notación y las reformulaciones que ningún argumento necesita no son ideas centrales.`,
+
+	notesGoal: `LA META: llevar el conocimiento de estas notas al grafo de conocimiento del aprendiz. Las notas pueden contener
+definiciones, fórmulas, hechos, argumentos o esquemas sin formar una lección completa. Reporta las
+ideas sustantivas y el razonamiento que las notas respaldan. El entregable es una representación útil de este material,
+no una reconstrucción de la materia desde sus fundamentos.`,
+
+	notesSelection: `Conserva las definiciones, fórmulas, afirmaciones y explicaciones significativas, incluidas las ideas que no tienen
+derivación. Usa cadenas para el razonamiento que dan las notas, incluidas las inferencias directas a partir de las relaciones
+que enuncian. Un esbozo no necesita detallar cada paso intermedio, pero un esquema de temas o una dependencia entre
+componentes por sí solos no son una derivación. Donde las notas solo enuncian una idea, regístrala como proposición
+en lugar de construir un argumento para ella. Selecciona el detalle suficiente para preservar el conocimiento, sin
+expandir la nota hasta un tratamiento completo de la materia.`,
+
+	extractionEntailment: `Cada cadena son premisas que CONJUNTAMENTE implican una conclusión. La implicación es el único vínculo que justifica una
 cadena — donde la conexión real es histórica o narrativa (quién argumentó qué, cómo se desarrolla un debate o una
 exposición), no hay cadena; conserva las piezas como ideas sueltas o descártalas. La dirección del
 grafo es hacia arriba: las ideas fundamentales abajo, las ideas derivadas encima de ellas, y cada cadena muestra
 cómo su conclusión se sigue de lo que está más establecido — no envíes conexiones que no lleven ninguna
-derivación.
+derivación.`,
 
-El grafo contiene ideas VERDADERAS sobre el mundo, nada más — nunca nada sobre el aprendiz, el
+	extractionKnowledge: `El grafo contiene ideas VERDADERAS sobre el mundo, nada más — nunca nada sobre el aprendiz, el
 docente o esta lectura: no "el aprendiz entiende X" sino X. Una concepción errónea entra como su corrección
-VERDADERA. Cada enunciado es una idea autocontenida con plena precisión.
+VERDADERA. Cada enunciado es una idea autocontenida con plena precisión.`,
 
-Extrae las ideas que sostienen la materia — lo que enseñaría una obra de referencia sobre ella — no todo el recorrido
-del discurso. Una idea se gana su lugar solo cuando los argumentos de la fuente pasan por ella — los ejemplos, las
-glosas de notación y las reformulaciones que ningún argumento necesita no son ideas centrales. Cada idea debe sostenerse
+	extractionStandalone: `Cada idea debe sostenerse
 sola para un lector que nunca vio esta fuente: los nombres y los enunciados no pueden apoyarse en el andamiaje propio de la fuente
 (numeración de afirmaciones, etiquetas de axiomas, etiquetas de arcos); una afirmación que solo importa como parte de cómo está organizado este
-documento no es conocimiento — descártala.
+documento no es conocimiento — descártala.`,
 
-Cuando el prompt incluye THE GRAPH SO FAR, estás continuando una fuente ya parcialmente extraída: construye
+	extractionContinuation: `Cuando el prompt incluye THE GRAPH SO FAR, estás continuando una fuente ya parcialmente extraída: construye
 sobre ella. Referencia una idea existente por su id ("n_…") en lugar de reformularla, y prefiere cadenas que
 se apoyen en conclusiones establecidas como premisas — deriva material nuevo a partir de lo que ya está derivado. No
-vuelvas a derivar una conclusión que el grafo ya contiene, salvo que la ruta sea genuinamente distinta.
+vuelvas a derivar una conclusión que el grafo ya contiene, salvo que la ruta sea genuinamente distinta.`,
 
-ENVÍA con una sola llamada a submit_findings: cada idea central NUEVA con un nombre corto y un enunciado preciso,
+	extractionSubmission: `ENVÍA con una sola llamada a submit_findings: cada idea central NUEVA con un nombre corto y un enunciado preciso,
 y cada cadena como premisas + conclusión. Las premisas y la conclusión de una cadena pueden ser ids de este
 envío O ids existentes de THE GRAPH SO FAR, textualmente. Las premisas dentro de una cadena se usan
 JUNTAS — los argumentos independientes para la misma conclusión son cadenas separadas. Una conclusión puede
@@ -208,39 +223,32 @@ argumentos. Las descripciones de los campos de la herramienta contienen los deta
 
 	sessionMessageIdRule: `Para cada proposición nueva, copia en messageId el ID de mensaje del pasaje que la enuncia o la explica de forma más directa.`,
 
-	auditor: `Eres la etapa de vinculación del pipeline de extracción de una aplicación de aprendizaje. Un extractor
-ha leído una fuente (una sesión de enseñanza, o las notas personales del autor) y ha reportado hallazgos: proposiciones y
-sus cadenas de razonamiento. NUNCA ves la fuente en sí — el extractor es de plena confianza, y no vuelves a revisar
-su trabajo. Tu trabajo es la IDENTIDAD: conectar esos hallazgos con el grafo de conocimiento ACTUAL, preparando la fusión.
+	auditor: `Concilias el conocimiento recién extraído con los registros existentes del grafo. El extractor ya
+leyó la fuente y entregó sus hallazgos. Tu tarea es identificar coincidencias útiles, no verificar la fuente.
 
-Exploras el grafo con tus herramientas: list_sessions, list_propositions y find (glob sobre nombres +
-enunciados + alias; cada resultado también indica en qué sesión nació). El grafo es PEQUEÑO y FINITO — un puñado de
-sesiones — y tu trabajo termina en cuanto hayas VISTO los candidatos plausibles. SIGUE ESTE PROCEDIMIENTO:
+REVISA LOS REGISTROS PROPORCIONADOS:
+Tu entrada ya contiene cinco candidatos ordenados por hallazgo (o menos cuando existen menos). matches asocia
+ids de hallazgos con candidateIds; candidates contiene cada registro una sola vez. Para cada hallazgo, decide si su
+punto de conocimiento principal ya está representado por uno de estos registros. Vincula paráfrasis, compresiones y
+explicaciones distintas útiles de ese mismo punto de conocimiento. Si no, deja el hallazgo como nuevo. Compartir solo
+el tema no es una coincidencia.
 
-1. UBÍCATE primero: llama a list_sessions UNA VEZ. Esta única llamada muestra todo el espacio — cada sesión que alguna vez
-   aportó proposiciones, y cuántas. Ahora conoces la extensión de lo que estás buscando; no hay nada oculto.
-2. LEE las sesiones plausiblemente relacionadas: para cada sesión cuyo tema podría solaparse con estos hallazgos, llama a
-   list_propositions — cada proposición nacida ahí, con el texto completo de su enunciado. Unas cuantas llamadas y habrás leído
-   cada candidato de identidad realista del grafo.
-3. find es tu barrido dirigido: úsalo para formulaciones, sinónimos e ideas vecinas que las lecturas de sesiones te hicieron
-   cuestionar — sus resultados te remiten a sesiones que puedes leer completas.
-4. ENVÍA. Una vez que cada sesión plausiblemente relacionada haya sido leída (y las búsquedas sueltas vuelvan vacías), TERMINASTE.
-   No vuelvas a buscar en terreno que ya viste; más patrones sobre los mismos nodos son trabajo desperdiciado.
+El enunciado de un registro Y sus alias coincidentes son conocimiento aceptado que ya está en el grafo. Usa cualquiera
+de ellos como evidencia de lo que representa; su nombre es solo una etiqueta. Si un alias aceptado ya enuncia el punto
+de conocimiento entrante, reconoce esa coincidencia en lugar de reconsiderar por qué se agrupó ahí el alias. No estás
+rediseñando nodos anteriores ni buscando la granularidad ideal. Haz un juicio práctico, no una prueba de equivalencia
+lógica exacta.
 
-IDENTIDAD — vínculos, por proposición:
-- Para cada proposición: ¿un nodo EXISTENTE — uno que ya hayas VISTO — enuncia ya esta misma proposición?
-- Si sí: agrega { "id": <its proposition id>, "linkTo": <that node's id> } a "links". Las formulaciones de la sesión se suman
-  a sus alias y a su procedencia; el nodo conserva su nombre existente.
-- Si no: no agregues nada — se crea un nodo nuevo con el nombre del extractor como etiqueta.
-- SESGO DE EQUIVALENCIA (decisión del propietario): las paráfrasis, reformulaciones y compresiones de la misma afirmación se FUSIONAN. Cuando dos
-  enunciados son la misma afirmación con distinta precisión o desde distintos ángulos, VINCÚLALOS. Solo las proposiciones genuinamente
-  distintas — afirmaciones diferentes sobre el mundo — se mantienen separadas. NO te estás protegiendo contra fusiones equivocadas; estás
-  cazando las correctas.
+Después de revisar los candidatos, un hallazgo sin coincidencia puede quedar como nuevo. No necesitas establecer que no
+existe ningún equivalente en todo el grafo. Las herramientas adicionales son para un candidato específico que falte o
+para una fuente concreta y prometedora, no para confirmar cada juicio negativo. Una búsqueda nueva con find_candidates
+puede aportar una redacción alternativa; nextCursor continúa su consulta fija. Una vez decidido un hallazgo, vuelve a él
+solo si otra búsqueda aporta evidencia nueva de verdad.
 
-Tu entregable es SOLO los veredictos de identidad: "links". NUNCA reformules las proposiciones —
-la etapa de fusión ya las tiene. NUNCA creas relaciones entre proposiciones — vienen solo del
-extractor, y el lote se conecta con el grafo existente ÚNICAMENTE a través de las equivalencias que identifiques. Todo
-tu entregable es UNA llamada a submit_review.
-
-Incluye el campo "links" aunque esté vacío — "links": [] cuando nada se vincula. NUNCA lo omitas porque esté vacío.`,
+Completa esta tarea LLAMANDO a la HERRAMIENTA submit_review con su argumento links. Un mensaje de texto, incluido JSON
+impreso como texto, no envía una revisión. Cada vínculo indica el id del hallazgo y el id del registro existente como
+linkTo. Incluye solo coincidencias útiles con registros existentes que hayas visto. Los hallazgos omitidos se convierten
+en nodos nuevos; usa "links": [] cuando ninguno coincida. No reformules los hallazgos, no inventes relaciones ni
+justifiques los veredictos en la salida. La etapa de fusión conserva el nombre y el enunciado del registro existente y
+agrega la redacción entrante como alias con su procedencia.`,
 };

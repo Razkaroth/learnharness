@@ -44,7 +44,6 @@ export const composer: Record<keyof typeof en, string> = {
 	"composer.kind.explain": "Explica",
 	"composer.kind.question": "Pregunta",
 
-	"composer.dock.malformed": "Esta pregunta llegó mal formada — la transcripción conserva el reintento.",
 	"composer.dock.checkUnderstanding": "Comprueba lo que entendiste",
 	"composer.dock.open": "Abrir",
 	"composer.dock.answer": "Responder",
@@ -100,4 +99,12 @@ export const composer: Record<keyof typeof en, string> = {
 	"composer.plan.fit": "Ajustar el plan a la pantalla",
 	"composer.plan.zoomIn": "Acercar",
 	"composer.plan.empty": "Todavía no hay plan en esta sesión.",
+
+	// File path drop zone
+	"composer.filePaths.browserOnly": "Las rutas de archivos locales solo pueden adjuntarse en la app de escritorio. Puedes pegar una ruta completa en su lugar.",
+	"composer.filePaths.none": "No había rutas de archivos locales disponibles. Suelta archivos existentes de tu computadora.",
+	"composer.filePaths.openChat": "Abre un chat para adjuntar rutas de archivos.",
+	"composer.filePaths.someSkipped": "Algunos elementos soltados no tenían una ruta de archivo disponible.",
+	"composer.filePaths.drop": "Suelta para adjuntar rutas de archivos",
+	"composer.filePaths.dismiss": "Descartar aviso de adjuntos",
 };

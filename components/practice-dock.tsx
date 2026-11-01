@@ -8,6 +8,7 @@ import { joinDictation, useDictationTarget } from "@/components/dictation";
 import { useEnterSubmits } from "@/components/enter-submits";
 import { enterKey } from "@/components/phone-layout";
 import { usePhoneLayout } from "@/components/phone-layout-context";
+import { PathInput } from "@/components/path-input";
 import { cn } from "@/lib/utils";
 import { useT } from "@/components/i18n";
 
@@ -126,11 +127,11 @@ export function PracticeDock({ problemCallId, input, expanded, onExpand, onSubmi
 				<div className="px-2.5 pt-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
 					{t("artifacts.practice.yourThinking")}
 				</div>
-				<textarea
+				<PathInput
 					value={thinking}
-					onChange={(e) => {
-						thinkingRef.current = e.target.value;
-						setThinking(e.target.value);
+					onValueChange={(value) => {
+						thinkingRef.current = value;
+						setThinking(value);
 					}}
 					onKeyDown={(e) => {
 						// Esc ends dictation — stopPropagation claims it (the
@@ -150,7 +151,6 @@ export function PracticeDock({ problemCallId, input, expanded, onExpand, onSubmi
 						}
 					}}
 					placeholder={t("artifacts.practice.placeholder")}
-					rows={4}
 					className={cn(
 						"field-sizing-content lh-input max-h-64 min-h-16 w-full resize-none bg-transparent px-2.5 pb-2 outline-none placeholder:text-muted-foreground",
 					)}

@@ -93,9 +93,14 @@ export const graph = {
 	"graph.coverage.tokens": "{tokens} tokens",
 
 	// Notes import errors
-	"graph.import.invalidResponse": "Invalid import response. Please retry the file.",
-	"graph.import.requestFailed": "Import request failed (HTTP {status}). Please retry the file.",
-	"graph.import.requestFailedDetail": "Import request failed (HTTP {status}): {detail}. Please retry the file.",
+	"graph.import.invalidResponse": "Invalid import response. Check the graph before retrying.",
+	"graph.import.requestFailed": "Import request failed (HTTP {status}). Check the graph before retrying.",
+	"graph.import.requestFailedDetail": "Import request failed (HTTP {status}): {detail} Check the graph before retrying.",
+	"graph.import.unsupported": "Unsupported format or unsafe relative path.",
+	"graph.import.tooBig": "Too big. Max 25 MB.",
+	"graph.import.menu": "Import notes",
+	"graph.import.files": "Files",
+	"graph.import.folder": "Folder",
 
 	// Delete dialogs (shared)
 	"graph.delete.cancel": "Cancel",
@@ -122,4 +127,24 @@ export const graph = {
 	"graph.deleteNode.permanence.one": "This permanently deletes the node — this cannot be undone.",
 	"graph.deleteNode.permanence.other": "This permanently deletes all {n} nodes — this cannot be undone.",
 	"graph.deleteNode.extractionRunning": "An extraction is running — try again when the activity dock drains.",
+
+	// Delete sources dialog
+	"graph.deleteSource.aria": "Delete sources",
+	"graph.deleteSource.title": "Delete selected sources and folders?",
+	"graph.deleteSource.more": ", and {n} more",
+	"graph.deleteSource.contributions": "Removes these sources’ contributions to propositions and reasoning chains. Knowledge supported by other sources survives; knowledge supported only by these sources is removed.",
+	"graph.deleteSource.records": "Imported source records are removed, but original files on disk are never changed. Selected folders are removed only when empty; folders needed by kept sessions remain.",
+	"graph.deleteSource.sessions.one": "Also delete the {n} selected session",
+	"graph.deleteSource.sessions.other": "Also delete the {n} selected sessions",
+	"graph.deleteSource.sessionsHint": "Unchecked, conversations stay in their current folders and can be extracted again. Either way, their graph contributions and extraction coverage are cleared. Checking this also permanently deletes their messages and background jobs.",
+
+	// Delete dialog: empty folders
+	"graph.deleteNode.title.withFolders": "Delete nodes and remove empty folders?",
+	"graph.deleteNode.title.foldersOnly": "Remove empty folders?",
+	"graph.deleteNode.emptyFolders": "Empty folders: {names}",
+	"graph.deleteNode.foldersOnlyNamed": "Only the named empty folders are removed.",
+	"graph.deleteNode.kept": "Sessions, imported source records, and non-empty folders are kept.",
+
+	// Delete dialog: folder removal fallback
+	"graph.deleteNode.folderRemovalUnavailable": "Folder removal is unavailable.",
 } as const;

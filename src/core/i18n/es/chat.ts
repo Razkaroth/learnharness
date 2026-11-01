@@ -50,4 +50,11 @@ export const chat: Record<keyof typeof en, string> = {
 	"chat.session.dismissFailed": "No se pudo descartar ({status}).",
 	"chat.session.attachFailed": "No se pudo conectar al turno en curso.",
 	"chat.session.emptyStream": "El flujo del turno llegó vacío.",
+
+	// Malformed question recovery
+	"chat.malformed.body": "No se pudo mostrar esta pregunta.",
+	"chat.malformed.retryHint": "Reinténtala o envía un mensaje para continuar.",
+	"chat.malformed.retryTitle": "Pide al modelo que la reemplace.",
+	"chat.malformed.retry": "Reintentar pregunta",
+	"chat.malformed.pendingReason": "Primero responde o descarta la pregunta pendiente.",
 };

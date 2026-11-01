@@ -43,7 +43,6 @@ export const composer = {
 	"composer.kind.explain": "Explain",
 	"composer.kind.question": "Question",
 
-	"composer.dock.malformed": "This question arrived malformed — the transcript keeps the retry.",
 	"composer.dock.checkUnderstanding": "Check your understanding",
 	"composer.dock.open": "Open",
 	"composer.dock.answer": "Answer",
@@ -98,4 +97,12 @@ export const composer = {
 	"composer.plan.fit": "Fit plan to screen",
 	"composer.plan.zoomIn": "Zoom in",
 	"composer.plan.empty": "No plan in this session yet.",
+
+	// File path drop zone
+	"composer.filePaths.browserOnly": "Local file paths can only be attached in the desktop app. You can paste a full path instead.",
+	"composer.filePaths.none": "No local file paths were available. Drop existing files from your computer.",
+	"composer.filePaths.openChat": "Open a chat to attach file paths.",
+	"composer.filePaths.someSkipped": "Some dropped items had no available file path.",
+	"composer.filePaths.drop": "Drop to attach file paths",
+	"composer.filePaths.dismiss": "Dismiss attachment notice",
 } as const;
