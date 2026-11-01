@@ -37,4 +37,20 @@ describe("worker prompts", () => {
 		await runResearcherAgent("What is a derivative?", { engine: en.engine });
 		assert.match(en.seen.system ?? "", /^You are a research specialist/);
 	});
+
+	it("the researcher's final-brief request follows the language", async () => {
+		const faux = createFauxCore({});
+		let request = "";
+		faux.setResponses([
+			() => fauxAssistantMessage([]),
+			(context) => {
+				const last = context.messages.at(-1);
+				request = last?.role === "user" ? String(last.content) : "";
+				return fauxAssistantMessage([fauxText("informe")]);
+			},
+		]);
+		await runResearcherAgent("¿Qué es una derivada?", { engine: { model: faux.getModel(), streamFn: faux.streamSimple }, language: "es" });
+		assert.equal(request, workerPrompt("researcherFinalize", "", "es"));
+		assert.match(request, /^Tu presupuesto de investigación se agotó/);
+	});
 });

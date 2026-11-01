@@ -69,6 +69,8 @@ Numbered findings with inline source citations:
 ## Gaps
 What couldn't be answered. Suggested next steps.`;
 
+const FINALIZE_REQUEST = "Your research budget is used up and your last response contained no final brief. Write the final research brief now, in the required format, using only the evidence already collected. Do not call any tools. State gaps honestly; do not invent findings or sources.";
+
 export interface ResearcherRunOptions {
 	engine?: PiEngine;
 	/** The search seam (search port wave, 2026-09-20): resolves the LIVE
@@ -98,18 +100,30 @@ export interface ResearcherRunOptions {
 export async function runResearcherAgent(prompt: string, opts: ResearcherRunOptions = {}): Promise<string> {
 	const tools = Object.values(createWebTools(opts.search ?? (() => null)));
 	if (opts.pdfDir) tools.push(...Object.values(createPdfReadTools(opts.pdfDir)));
-	const { text } = await runSubagent(tools, {
+	const run = {
 		role: "researcher",
-		prompt,
 		engine: opts.engine,
 		systemPrompt: workerPrompt("researcher", INSTRUCTIONS, opts.language),
-		maxTurns: 12,
 		abortSignal: opts.abortSignal,
 		onUsage: opts.onUsage,
 		onToolStart: opts.onToolStart,
 		chatId: opts.chatId,
+	} as const;
+	const { text, newMessages } = await runSubagent(tools, { ...run, prompt, maxTurns: 20 });
+	if (text.trim()) return text;
+	// Small-step models can spend the whole budget on tool calls, and some
+	// providers end cleanly without text: one tool-free call writes the brief.
+	const finalized = await runSubagent(tools, {
+		...run,
+		messages: [...newMessages, {
+			role: "user",
+			content: workerPrompt("researcherFinalize", FINALIZE_REQUEST, opts.language),
+			timestamp: Date.now(),
+		}],
+		maxTurns: 1,
+		toolChoice: "none",
 	});
-	return text;
+	return finalized.text;
 }
 
 export type ResearcherAgent = ReturnType<typeof runResearcherAgent>;
