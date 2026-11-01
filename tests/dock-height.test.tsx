@@ -77,24 +77,25 @@ describe("dockHeightBudget — whole dock, not just its question", () => {
 const sizes: Record<string, number> = {};
 let animating = false;
 dom.window.HTMLElement.prototype.getAnimations = () => animating ? [{} as Animation] : [];
-const resetSizes = () => Object.assign(sizes, { column: 700, block: 862, viewport: 802, body: 802, shell: 802, content: 800, question: 600 });
+const resetSizes = () => Object.assign(sizes, { column: 700, frame: 900, block: 862, viewport: 802, body: 802, shell: 802, content: 800, question: 600 });
 const originalRect = dom.window.HTMLElement.prototype.getBoundingClientRect;
 dom.window.HTMLElement.prototype.getBoundingClientRect = function () {
 	const part = this.hasAttribute("data-dock-scroll-area") ? "question" : this.dataset.part;
 	if (part && part in sizes) return { height: sizes[part]!, width: 700, x: 0, y: 0, top: 0, left: 0, bottom: sizes[part]!, right: 700, toJSON() {} };
 	return originalRect.call(this);
 };
-Object.defineProperty(dom.window.HTMLElement.prototype, "clientHeight", { configurable: true, get() { return this.dataset.part === "column" ? sizes.column : Number(this.dataset.clientHeight ?? 0); } });
+Object.defineProperty(dom.window.HTMLElement.prototype, "clientHeight", { configurable: true, get() { return this.dataset.part === "column" || this.dataset.part === "frame" ? sizes[this.dataset.part] : Number(this.dataset.clientHeight ?? 0); } });
 Object.defineProperty(dom.window.HTMLElement.prototype, "clientWidth", { configurable: true, get() { return this.dataset.part === "column" ? 680 : 700; } });
 Object.defineProperty(dom.window.HTMLElement.prototype, "offsetWidth", { configurable: true, get() { return 700; } });
 Object.defineProperty(dom.window.HTMLElement.prototype, "scrollHeight", { configurable: true, get() { return Number(this.dataset.scrollHeight ?? 0); } });
 
 const ignoreHeight = () => {};
-function Fixture({ expanded = true, practice = false, enabled = true, inspected, onHeight = ignoreHeight }: {
+function Fixture({ expanded = true, practice = false, enabled = true, inspected, onHeight = ignoreHeight, framed = false, availableCap }: {
 	expanded?: boolean; practice?: boolean; enabled?: boolean; inspected?: (block: HTMLDivElement) => void;
-	onHeight?: (height: number) => void;
+	onHeight?: (height: number) => void; framed?: boolean; availableCap?: number;
 }) {
 	const scrollRef = useRef<HTMLDivElement>(null);
+	const frameRef = useRef<HTMLDivElement>(null);
 	const blockRef = useRef<HTMLDivElement>(null);
 	const viewportRef = useRef<HTMLDivElement>(null);
 	const bodyRef = useRef<HTMLDivElement>(null);
@@ -102,11 +103,12 @@ function Fixture({ expanded = true, practice = false, enabled = true, inspected,
 	const contentRef = useRef<HTMLDivElement>(null);
 	const [inset, setInset] = useState(0);
 	useDockHeight({ scrollRef, blockRef, viewportRef, bodyRef, shellRef, contentRef,
-		expanded, enabled, mode: practice ? "practice:p1" : "question:q1", onScrollbarInset: setInset, onHeight });
+		expanded, enabled, mode: practice ? "practice:p1" : "question:q1", onScrollbarInset: setInset, onHeight,
+		availableCap, frameRef: framed ? frameRef : undefined });
 	// Like DockOverlay's later morph/reserve layout effect: constraints must
 	// already be applied in this same commit, not an after-paint correction.
 	useLayoutEffect(() => { if (blockRef.current) inspected?.(blockRef.current); });
-	return <><div ref={scrollRef} data-part="column" /><div ref={blockRef} data-part="block" data-inset={inset}>
+	return <><div ref={scrollRef} data-part="column" /><div ref={frameRef} data-part="frame" /><div ref={blockRef} data-part="block" data-inset={inset}>
 		<div ref={viewportRef} data-part="viewport"><div ref={bodyRef} data-part="body">
 			<div ref={shellRef} data-part="shell"><div ref={contentRef} data-part="content" key={practice ? "practice" : "question"}>
 				{practice ? <PracticeDock problemCallId="p1" input={{ statement: "Long practice problem" }} expanded={expanded} onExpand={() => {}} onSubmit={() => {}} />
@@ -205,6 +207,20 @@ describe("measured question/practice DOM and observer lifecycle", () => {
 			} finally { animating = false; }
 			await act(async () => observers.at(-1)!.callback());
 			assert.equal(heights.at(-1), 900, "settled child resize reaches the reserve without a parent render");
+		});
+	});
+	it("full screen budgets against the frame: no scrollbar inset, no keyboard cap, no transcript reserve", async () => {
+		await withFixture(async (host, render) => {
+			const heights: number[] = [];
+			await render({ framed: true, availableCap: 300, onHeight: h => heights.push(h) });
+			assert.equal(part(host, "block").style.getPropertyValue("--dock-max-h"), "606px");
+			assert.equal(part(host, "block").dataset.inset, "0");
+			assert.equal(heights.length, 0);
+			assert.ok(observers.at(-1)!.elements.has(part(host, "frame")));
+			await render({ framed: false, availableCap: 300, onHeight: h => heights.push(h) });
+			assert.equal(part(host, "block").style.getPropertyValue("--dock-max-h"), "38px");
+			assert.equal(part(host, "block").dataset.inset, "10");
+			assert.equal(heights.at(-1), 862);
 		});
 	});
 	it("reconnects to a new keyed mode even when expansion is unchanged", async () => {
