@@ -418,6 +418,55 @@ body {
 [data-streamdown="table-body"] [data-streamdown="table-row"] {
 	border-bottom: 1px solid var(--border);
 }
+/* Phone layout (width mirrors NARROW_WIDTH): each body row becomes a card
+   read top to bottom. The first cell is its title; every other cell leads
+   with its column heading (data-label, stamped by md-blocks'
+   stampCellLabels). The header row stays for screen readers only. */
+@media (max-width: 927.98px) {
+	[data-testid="md-table"] {
+		padding-top: 1.75rem;
+	}
+	[data-streamdown="table"] {
+		display: block;
+		width: 100%;
+		border: 0;
+	}
+	[data-streamdown="table"] :where(tbody, tr, td) {
+		display: block;
+	}
+	[data-streamdown="table-header"] {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip-path: inset(50%);
+		white-space: nowrap;
+	}
+	[data-streamdown="table-body"] [data-streamdown="table-row"] {
+		border: 1px solid var(--border);
+		border-radius: 0.5rem;
+		padding: 0.5rem 0.75rem;
+	}
+	[data-streamdown="table-body"] [data-streamdown="table-row"] + [data-streamdown="table-row"] {
+		margin-top: 0.5rem;
+	}
+	[data-streamdown="table"] :where(th, td):not(:first-child) {
+		border-left: 0;
+	}
+	[data-streamdown="table"] td {
+		padding: 0.125rem 0;
+		white-space: normal;
+		text-align: left;
+	}
+	[data-streamdown="table"] td:first-child {
+		font-weight: 600;
+	}
+	[data-streamdown="table"] td:not(:first-child)[data-label]::before {
+		content: attr(data-label) ": ";
+		color: var(--muted-foreground);
+		font-weight: 500;
+	}
+}
 
 /* The mermaid focus overlay's chart wrapper: the svg fills the wrapper
    (which is sized to the chart's viewBox — pan-zoom.ts math centers on it),
