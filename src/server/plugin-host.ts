@@ -328,8 +328,8 @@ export function createPluginHost(deps: PluginHostDependencies) {
 					// Next's module graph. Ship scripts/plugin-loader.cjs alongside app.
 					const sidecar = path.join(process.cwd(), "scripts", "plugin-loader.cjs");
 					const nativeRequire = createRequire(sidecar);
-					const loader = nativeRequire(sidecar) as { load(filename: string): PluginBackendModule };
-					pkg.backend = loader.load(entry);
+					const loader = nativeRequire(sidecar) as { loadIsolated(filename: string, root: string): PluginBackendModule };
+					pkg.backend = loader.loadIsolated(entry, fs.realpathSync(/* turbopackIgnore: true */ pkg.rootDirectory));
 					if (!pkg.backend || typeof pkg.backend.activate !== "function") throw new Error("Plugin backend must export activate(context)");
 				}
 				const returned = await pkg.backend.activate(ctx);

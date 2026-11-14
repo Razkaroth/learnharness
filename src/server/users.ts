@@ -45,6 +45,7 @@ import {
 import { readSettings, writeSettings } from "../store/settings.ts";
 import { isAppLanguage, type AppLanguage } from "../core/i18n.ts";
 import { resolveSettings } from "../core/settings-resolution.ts";
+import { ROOT_PLUGIN_PROFILE, stopPluginRuntime } from "./plugin-runtimes.ts";
 
 export { registryExists } from "../store/users.ts";
 export { runAsUser, activeUserId } from "../../config.ts";
@@ -200,7 +201,11 @@ export function createProfile(req: Request | undefined, input: ProfileInput): { 
 		...(pin ? { pin } : {}),
 		createdAt: new Date().toISOString(),
 	};
-	if (first && !registryExists()) claimRoot(profile.id);
+	if (first && !registryExists()) {
+		// The root runtime's plugin folders move with the claim.
+		void stopPluginRuntime(ROOT_PLUGIN_PROFILE);
+		claimRoot(profile.id);
+	}
 	else fs.mkdirSync(userDataDir(profile.id), { recursive: true });
 	if (isAppLanguage(input.language)) writeLanguage(profile.id, input.language);
 	writeProfiles([...profiles, profile]);
@@ -238,6 +243,7 @@ export function deleteProfile(req: Request | undefined, id: string): void {
 	if (target.role === "admin") throw new UsersError(409, "The admin profile can't be deleted.");
 	writeProfiles(profiles.filter((p) => p.id !== id));
 	deleteSessionsOf(id);
+	void stopPluginRuntime(id);
 	fs.rmSync(userDataDir(id), { recursive: true, force: true });
 }
 
