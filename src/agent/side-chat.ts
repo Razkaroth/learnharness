@@ -23,11 +23,12 @@ import { providerEventObserver } from "./provider-events.ts";
 import { PATHS } from "../../config.ts";
 import type { SideModelTurn } from "../core/side-chat.ts";
 import type { PiEngine } from "./models.ts";
-import { readPromptOverride } from "./prompt-segments.ts";
+import { readPromptOverride, resolveSegmentFile } from "./prompt-segments.ts";
+import { DEFAULT_LANGUAGE, type AppLanguage } from "../core/i18n.ts";
 
 const PROMPTS_DIR = path.join(PATHS.root, "src", "agent", "prompts");
-const SIDE_BASE = path.join(PROMPTS_DIR, "side-chat", "00-base.md");
-const SIDE_STYLE = path.join(PROMPTS_DIR, "side-chat", "90-style.md");
+const SIDE_BASE = "side-chat/00-base.md";
+const SIDE_STYLE = "side-chat/90-style.md";
 /** The shared appendix, in composition order (keys = override paths). */
 const SIDE_SHARED_FRAGMENTS = ["shared/10-voice.md", "shared/15-accuracy.md", "shared/40-formatting.md"];
 
@@ -40,14 +41,16 @@ function readSource(file: string): string {
 }
 
 /** The side model's system prompt, composed fresh per call (an override
- *  switched on between questions lands on the next one). */
-export function composeSideChatInstructions(switches: Record<string, boolean> = {}): string {
-	const segments = [readSource(SIDE_BASE)];
+ *  switched on between questions lands on the next one). Source text is the
+ *  `language` translation when present; overrides apply in every language. */
+export function composeSideChatInstructions(switches: Record<string, boolean> = {}, language: AppLanguage = DEFAULT_LANGUAGE): string {
+	const source = (key: string) => readSource(resolveSegmentFile(key, path.join(PROMPTS_DIR, ...key.split("/")), language));
+	const segments = [source(SIDE_BASE)];
 	for (const key of SIDE_SHARED_FRAGMENTS) {
 		const override = switches[key] === true ? readPromptOverride(key) : null;
-		segments.push(override ?? readSource(path.join(PROMPTS_DIR, ...key.split("/"))));
+		segments.push(override ?? source(key));
 	}
-	segments.push(readSource(SIDE_STYLE));
+	segments.push(source(SIDE_STYLE));
 	return segments
 		.map((s) => s.trim())
 		.filter(Boolean)

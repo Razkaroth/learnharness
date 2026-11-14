@@ -67,6 +67,8 @@ function withPayload(test: (fixture: {
 		write(path.join(STANDALONE, "src", "agent", "prompts", "locales", "es", "system-prompt.md"));
 		write(path.join(STANDALONE, "src", "agent", "prompts", "side-chat", "00-base.md"));
 		write(path.join(STANDALONE, "src", "agent", "prompts", "side-chat", "90-style.md"));
+		write(path.join(STANDALONE, "src", "agent", "prompts", "locales", "es", "side-chat", "00-base.md"));
+		write(path.join(STANDALONE, "src", "agent", "prompts", "locales", "es", "side-chat", "90-style.md"));
 		test({ root, write, run: () => spawnSync(process.execPath, [path.join(root, "scripts", "build-server.mjs")], {
 			cwd: root, encoding: "utf8", timeout: 10_000,
 		}) });

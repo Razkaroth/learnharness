@@ -249,6 +249,13 @@ describe("side instructions", () => {
 			assert.doesNotMatch(composeSideChatInstructions(), /OVERRIDE VOICE/);
 		} finally { fs.rmSync(file); }
 	});
+	it("composes the Spanish translations when the app language is Spanish", () => {
+		const prompt = composeSideChatInstructions({}, "es");
+		assert.match(prompt, /## Preguntas al margen/);
+		assert.match(prompt, /`<lesson>`/);
+		assert.ok(prompt.indexOf("## Brevedad en las respuestas al margen") > prompt.indexOf("## Preguntas al margen"));
+		assert.doesNotMatch(prompt, /## Side questions|## Side-answer brevity/);
+	});
 });
 
 // ── store ───────────────────────────────────────────────────────────────────

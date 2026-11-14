@@ -88,6 +88,7 @@ const nextConfig: NextConfig = {
 			// Side questions (2026-11-02): the side model's base prompt is read
 			// from disk per ask — a directory no agent-composition read names.
 			"src/agent/prompts/side-chat/*.md",
+			"src/agent/prompts/locales/*/side-chat/*.md",
 			"src/agent/image-processing/*.mjs",
 			"src/agent/image-processing/LICENSE",
 			"node_modules/@silvia-odwyer/photon-node/**/*",

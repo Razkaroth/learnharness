@@ -109,6 +109,8 @@ for (const asset of [
 	path.join("src", "agent", "prompts", "locales", "es", "system-prompt.md"),
 	path.join("src", "agent", "prompts", "side-chat", "00-base.md"),
 	path.join("src", "agent", "prompts", "side-chat", "90-style.md"),
+	path.join("src", "agent", "prompts", "locales", "es", "side-chat", "00-base.md"),
+	path.join("src", "agent", "prompts", "locales", "es", "side-chat", "90-style.md"),
 ]) {
 	if (!exists(path.join(STANDALONE, asset))) {
 		console.error(`[build-server] prompt asset missing from the trace: ${asset}`);

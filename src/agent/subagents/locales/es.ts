@@ -1,12 +1,14 @@
 /**
  * Spanish worker prompts (see ../worker-prompts.ts). Each entry translates
  * the English constant of the same worker; machine-facing identifiers
- * (tool names, input fields, JSON keys, markers) stay verbatim.
+ * (tool names, input fields, JSON keys, markers) stay verbatim. Every key
+ * is required, so a new English worker prompt fails typecheck until translated.
  */
 
-import type { WorkerPromptTranslations } from "../worker-prompts.ts";
+import { LEARNER_IMAGE_HREF } from "../../../core/learner-image-svg.ts";
+import type { WorkerPromptKey } from "../worker-prompts.ts";
 
-export const es: WorkerPromptTranslations = {
+export const es = {
 	researcher: `Eres un especialista en investigación. Trabajas para un agente docente dentro de una aplicación
 de aprendizaje: dada una pregunta de investigación, realiza una investigación web exhaustiva y produce un informe
 enfocado y bien respaldado por fuentes, a partir del cual el docente pueda enseñar.
@@ -137,6 +139,23 @@ así en tu mensaje final y explica por qué.
 
 Escribe en español todo el texto visible para el usuario: las etiquetas de la figura y tus notas.`,
 
+	visualMakerImage: `ANOTAR LA IMAGEN DEL APRENDIZ — este brief viene con una de las imágenes del propio aprendiz. Tu
+figura es esa imagen con marcas encima, no un dibujo nuevo:
+
+- Colócala EXACTAMENTE UNA VEZ, a su tamaño natural, antes de tus marcas para que queden encima:
+  <image href="${LEARNER_IMAGE_HREF}" x="…" y="…" width="W" height="H"/> — W×H se indica junto con la imagen.
+  El bucle sustituye la imagen real; nunca dibujes ni describas su contenido tú mismo.
+- Usa solo marcas SVG estáticas y atributos en línea: sin scripts, animaciones, foreignObject, bloques style,
+  recursos externos ni sintaxis de recursos escapada. Se permiten referencias locales #fragment.
+- Anota en las coordenadas de píxel de la propia imagen (desplazadas por tu x/y si añades márgenes para etiquetas).
+- Cada marca debe caer exactamente sobre el rasgo que nombra — una flecha en la parte equivocada es una afirmación falsa.
+  Localiza primero el rasgo en la imagen y luego comprueba cada marca contra el render.
+- Las marcas deben leerse sobre cualquier fondo: trazos gruesos en uno o dos colores de alto contraste, y etiquetas
+  con un halo blanco (stroke="white" paint-order="stroke") o colocadas en un margen con una línea guía.
+- Nunca ocultes bajo una etiqueta o un relleno aquello de lo que trata el brief.
+- Si un rasgo que nombra el brief no está en la imagen, nunca adivines dónde está: déjalo sin marcar y dilo
+  en tus notas.`,
+
 	pdfReader: `Eres un especialista en lectura de PDF. Trabajas para un agente docente dentro de una aplicación
 de aprendizaje: dada la ruta de un PDF y una pregunta, lee el documento en nombre del docente y
 produce un informe enfocado a partir del cual el docente pueda enseñar, con citas de página.
@@ -253,4 +272,4 @@ linkTo. Incluye solo coincidencias útiles con registros existentes que hayas vi
 en nodos nuevos; usa "links": [] cuando ninguno coincida. No reformules los hallazgos, no inventes relaciones ni
 justifiques los veredictos en la salida. La etapa de fusión conserva el nombre y el enunciado del registro existente y
 agrega la redacción entrante como alias con su procedencia.`,
-};
+} satisfies Record<WorkerPromptKey, string>;

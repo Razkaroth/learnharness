@@ -20,6 +20,8 @@ function englishSegments(): Map<string, string> {
 	for (const agent of ["prober", "teacher", "practice"] as const) {
 		for (const s of listSourceSegments(agent)) out.set(s.path, s.file);
 	}
+	const sideChat = path.join(PATHS.root, "src", "agent", "prompts", "side-chat");
+	for (const name of fs.readdirSync(sideChat).filter((n) => n.endsWith(".md"))) out.set(`side-chat/${name}`, path.join(sideChat, name));
 	return out;
 }
 
