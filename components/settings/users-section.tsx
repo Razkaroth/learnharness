@@ -117,7 +117,7 @@ export function UsersSection({
 	return (
 		<div data-testid="users-section">
 			{error && (
-				<p role="alert" className="mb-3 rounded-sm border border-red-500/40 px-3 py-2 text-xs text-red-500">
+				<p role="alert" className="mb-3 rounded-sm border border-error/40 px-3 py-2 text-xs text-error">
 					{error}
 				</p>
 			)}
@@ -152,7 +152,7 @@ export function UsersSection({
 							editing.kind === "edit" && editing.id === p.id && p.id !== me.id ? (
 								<div key={p.id}>{editForm(p)}</div>
 							) : editing.kind === "delete" && editing.id === p.id ? (
-								<div key={p.id} className="flex items-center justify-between gap-3 rounded-md border border-red-500/40 px-3 py-2" data-testid="users-confirm-delete">
+								<div key={p.id} className="flex items-center justify-between gap-3 rounded-md border border-error/40 px-3 py-2" data-testid="users-confirm-delete">
 									<span className="text-xs text-foreground">
 										{t("users.settings.deleteConfirm", { name: p.name })}
 									</span>
@@ -163,7 +163,7 @@ export function UsersSection({
 										<button
 											type="button"
 											data-testid="users-delete-confirm"
-											className="rounded-sm px-2 py-1 font-ui text-xs text-red-400 transition-colors hover:bg-accent"
+											className="rounded-sm px-2 py-1 font-ui text-xs text-error transition-colors hover:bg-accent"
 											onClick={() => void remove(p.id)}
 										>
 											{t("users.settings.delete")}

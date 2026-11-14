@@ -191,7 +191,7 @@ export function ProfileForm({
 			)}
 
 			{error && (
-				<p role="alert" data-testid="profile-error" className="text-xs text-red-400">
+				<p role="alert" data-testid="profile-error" className="text-xs text-error">
 					{error}
 				</p>
 			)}

@@ -4,6 +4,19 @@ import { translate } from "@/src/core";
 import type { NotesImportResult } from "./notes-import";
 
 export const notesPath = (file: File): string => file.webkitRelativePath || file.name;
+/** Folder imports silently exclude dot-prefixed files and directories below
+ * the chosen root. The root is segment 0 and stays importable even when hidden. */
+const hiddenInFolder = (file: File): boolean => file.webkitRelativePath.split("/").slice(1).some((part) => part.startsWith("."));
+/** From the last dot of the file name, lower-cased. A dot that starts the name (".DS_Store") or ends it ("notes.") is not an extension. */
+const extensionLabel = (name: string, t: Translate): string => {
+	const dot = name.lastIndexOf(".");
+	return dot > 0 && dot < name.length - 1 ? name.slice(dot).toLowerCase() : t("graph.import.noExtension");
+};
+/** One line per reason for a whole pick, so a big folder cannot flood the error list. */
+const unsupportedSummary = (extensions: readonly string[], t: Translate): string =>
+	t(extensions.length === 1 ? "graph.import.skippedUnsupported.one" : "graph.import.skippedUnsupported.other", { n: extensions.length, extensions: [...new Set(extensions)].join(", ") });
+const unsafeSummary = (count: number, t: Translate): string =>
+	t(count === 1 ? "graph.import.skippedUnsafe.one" : "graph.import.skippedUnsafe.other", { n: count });
 export interface ImportQueueSnapshot {
 	importing: boolean;
 	errors: string[];
@@ -61,14 +74,19 @@ export function createNotesImportQueue(post: (files: readonly File[], t: Transla
 			if (files.length === 0) return;
 			if (translate) t = translate;
 			if (!snapshot.importing) { failures.clear(); notices.clear(); sequence = 0; }
+			// Unsafe names and unsupported types are summed up per pick; each summary sits where its first file was.
+			const unsafe: number[] = [], unsupported: { index: number; extension: string }[] = [];
 			for (const file of files) {
 				const index = sequence++;
 				const path = notesPath(file);
-				if (file.webkitRelativePath && file.name === ".DS_Store") continue;
-				if (!IMPORT_EXTENSIONS.test(path) || !validNotesPath(path, file.name)) failures.set(index, `${path}: ${t("graph.import.unsupported")}`);
+				if (file.webkitRelativePath && hiddenInFolder(file)) continue;
+				if (!validNotesPath(path, file.name)) unsafe.push(index);
+				else if (!IMPORT_EXTENSIONS.test(file.name)) unsupported.push({ index, extension: extensionLabel(file.name, t) });
 				else if (file.size > MAX_IMPORT_BYTES) failures.set(index, `${path}: ${t("graph.import.tooBig")}`);
 				else pending.push({ file, index });
 			}
+			if (unsafe.length > 0) failures.set(unsafe[0]!, unsafeSummary(unsafe.length, t));
+			if (unsupported.length > 0) failures.set(unsupported[0]!.index, unsupportedSummary(unsupported.map(({ extension }) => extension), t));
 			const hadWork = active > 0 || pending.length > 0;
 			pump();
 			publish(!hadWork);

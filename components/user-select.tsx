@@ -70,7 +70,7 @@ export function UserSelect({ snapshot }: { snapshot: UsersSnapshot }) {
 				<>
 					<h1 className="font-title text-4xl tracking-tight">{t("users.select.title")}</h1>
 					{notice && (
-						<p role="alert" data-testid="user-select-notice" className="-mt-6 text-sm text-red-400">
+						<p role="alert" data-testid="user-select-notice" className="-mt-6 text-sm text-error">
 							{notice}
 						</p>
 					)}

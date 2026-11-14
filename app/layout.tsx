@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { JetBrains_Mono, Source_Sans_3 } from "next/font/google";
+import { connection } from "next/server";
 import "katex/dist/katex.min.css";
 import "./globals.css";
 import { AppShell, SidebarProvider } from "@/components/sidebar";
@@ -9,7 +10,9 @@ import { ServerEventsProvider } from "@/components/server-events";
 import { AppearanceProvider } from "@/components/settings/appearance";
 import UpdateBanner from "@/components/update-banner";
 import { I18nProvider } from "@/components/i18n";
+import { PluginsProvider } from "@/components/plugins";
 import { translate } from "@/src/core";
+import { defaultThemeBoot, readThemeBoot, registryExists, runAsUser } from "@/src/server";
 import { pageLanguage } from "./_lib/language";
 import { pageUserId } from "./_lib/user";
 
@@ -42,27 +45,44 @@ export const viewport: Viewport = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
+	// The theme is server-rendered — its class AND its color variables —
+	// so no first frame ever shows the wrong theme. connection(): the
+	// record and the theme files are per-machine disk state — without it a
+	// prerendered route (settings) would bake the BUILD machine's record.
+	await connection();
 	// No profile = the select screen: no sidebar, dock, or event channel —
-	// those all read a profile's data.
-	const signedIn = (await pageUserId()) !== null;
+	// those all read a profile's data. It paints the signed-out install's
+	// own theme, or the factory theme once profiles exist.
+	const userId = await pageUserId();
+	const signedIn = userId !== null;
 	const language = await pageLanguage();
+	const { appearance, theme, vars } = userId
+		? runAsUser(userId, readThemeBoot)
+		: registryExists() ? defaultThemeBoot() : readThemeBoot();
 	return (
-		<html lang={language} className={`dark ${ui.variable} ${prose.variable}`}>
+		<html
+			lang={language}
+			className={`${theme.mode} ${ui.variable} ${prose.variable}`}
+			style={vars as React.CSSProperties}
+			suppressHydrationWarning
+		>
 			<body className="min-h-dvh antialiased">
 			<I18nProvider initialLanguage={language}>
 			{signedIn ? (
 				/* The notification channel rides OUTSIDE everything: sidebar, dock,
 				   and pages all subscribe as the polls retire (push S3, 2026-10-02). */
 				<ServerEventsProvider>
-					<AppearanceProvider>
-						<PhoneLayoutProvider>
-							<SidebarProvider>
-								<ActivityProvider>
-									<AppShell>{children}</AppShell>
-								</ActivityProvider>
-							</SidebarProvider>
-						</PhoneLayoutProvider>
-					</AppearanceProvider>
+					<PluginsProvider>
+						<AppearanceProvider initialAppearance={appearance} initialTheme={theme}>
+							<PhoneLayoutProvider>
+								<SidebarProvider>
+									<ActivityProvider>
+										<AppShell>{children}</AppShell>
+									</ActivityProvider>
+								</SidebarProvider>
+							</PhoneLayoutProvider>
+						</AppearanceProvider>
+					</PluginsProvider>
 				</ServerEventsProvider>
 			) : (
 				children

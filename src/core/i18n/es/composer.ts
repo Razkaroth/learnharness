@@ -102,9 +102,13 @@ export const composer: Record<keyof typeof en, string> = {
 
 	// File path drop zone
 	"composer.filePaths.browserOnly": "Las rutas de archivos locales solo pueden adjuntarse en la app de escritorio. Puedes pegar una ruta completa en su lugar.",
-	"composer.filePaths.none": "No había rutas de archivos locales disponibles. Suelta archivos existentes de tu computadora.",
+	"composer.filePaths.none": "No había rutas de archivos locales disponibles. Suelta archivos o carpetas existentes de tu computadora.",
 	"composer.filePaths.openChat": "Abre un chat para adjuntar rutas de archivos.",
 	"composer.filePaths.someSkipped": "Algunos elementos soltados no tenían una ruta de archivo disponible.",
 	"composer.filePaths.drop": "Suelta para adjuntar rutas de archivos",
 	"composer.filePaths.dismiss": "Descartar aviso de adjuntos",
+
+	// Dictation: capture ownership
+	"composer.dictation.error.activeElsewhere": "El dictado está activo en otro lugar",
+	"composer.dictation.error.transcriptFailed": "No se pudo aplicar la transcripción del dictado",
 };

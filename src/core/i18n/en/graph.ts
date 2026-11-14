@@ -19,9 +19,9 @@ export const graph = {
 	"graph.chrome.noMatch": "No matching nodes.",
 	"graph.chrome.chainsHint": "Every reasoning chain",
 	"graph.chrome.chains": "Chains",
-	"graph.chrome.importHint": "Import notes into the graph",
-	"graph.chrome.importing": "Importing…",
-	"graph.chrome.import": "Import notes…",
+	"graph.chrome.importHint": "Extract files into the graph",
+	"graph.chrome.importing": "Extracting…",
+	"graph.chrome.import": "Extract files…",
 
 	// Pipeline costs
 	"graph.costs.hint": "Graph costs — click for details",
@@ -98,7 +98,7 @@ export const graph = {
 	"graph.import.requestFailedDetail": "Import request failed (HTTP {status}): {detail} Check the graph before retrying.",
 	"graph.import.unsupported": "Unsupported format or unsafe relative path.",
 	"graph.import.tooBig": "Too big. Max 25 MB.",
-	"graph.import.menu": "Import notes",
+	"graph.import.menu": "Extract files into the graph",
 	"graph.import.files": "Files",
 	"graph.import.folder": "Folder",
 
@@ -147,4 +147,14 @@ export const graph = {
 
 	// Delete dialog: folder removal fallback
 	"graph.deleteNode.folderRemovalUnavailable": "Folder removal is unavailable.",
+
+	// Notes import: skipped picks
+	"graph.import.noExtension": "no extension",
+	"graph.import.skippedUnsupported.one": "Skipped {n} file that isn't text, Markdown, or PDF ({extensions}).",
+	"graph.import.skippedUnsupported.other": "Skipped {n} files that aren't text, Markdown, or PDF ({extensions}).",
+	"graph.import.skippedUnsafe.one": "Skipped {n} file with a name the import can't use (e.g. a ':' in the name).",
+	"graph.import.skippedUnsafe.other": "Skipped {n} files with names the import can't use (e.g. a ':' in the name).",
+
+	// Extract files menu
+	"graph.import.lessonsHint": "For lessons, attach material to a session instead.",
 } as const;

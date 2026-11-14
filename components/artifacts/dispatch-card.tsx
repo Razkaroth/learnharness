@@ -25,13 +25,14 @@ const KIND_LABEL: Record<JobKind, TranslationKey> = {
 	demo: "artifacts.dispatch.kind.demo",
 	visual: "artifacts.dispatch.kind.visual",
 	pdf: "artifacts.dispatch.kind.pdf",
+	plugin: "artifacts.dispatch.kind.plugin",
 };
 
 export function DispatchCard({ toolCallId, kind }: { toolCallId: string; kind: JobKind }) {
 	const t = useT();
 	const jobs = useContext(JobsContext);
 	const job = jobs.find((j) => j.toolCallId === toolCallId) ?? null;
-	const label = t(KIND_LABEL[kind]);
+	const label = kind === "plugin" ? job?.plugin?.label || job?.plugin?.toolName || t(KIND_LABEL.plugin) : t(KIND_LABEL[kind]);
 
 	if (!job || job.status === "running") {
 		return <DispatchActivityCard job={job} label={label} />;
@@ -66,7 +67,7 @@ export function DispatchCard({ toolCallId, kind }: { toolCallId: string; kind: J
 			className="lh-measure flex items-center gap-2 text-xs text-muted-foreground"
 			data-testid="dispatch-settled"
 		>
-			{failed ? <XIcon className="size-3.5 text-red-500" /> : <CheckIcon className="size-3.5" />}
+			{failed ? <XIcon className="size-3.5 text-error" /> : <CheckIcon className="size-3.5" />}
 			<span className="font-medium uppercase tracking-wide">{label}</span>
 			<span>{failed ? t("artifacts.status.failed") : t("artifacts.dispatch.delivered")}</span>
 		</div>

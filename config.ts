@@ -16,9 +16,12 @@ export const ROOT = path.dirname(fileURLToPath(import.meta.url));
  * byte-for-byte as before. Read-only assets (prompts) stay ROOT-anchored
  * on purpose: they ship inside the app bundle by design.
  */
+// Mutable runtime paths are not deployment assets. Turbopack analyzes each
+// path-producing call independently, so derived paths need their own opt-out.
+// Keep ROOT/teacherPrompt traceable: read-only shipped assets still belong.
 const DATA_ROOT = process.env.LH_DATA_DIR
-	? path.resolve(process.env.LH_DATA_DIR)
-	: path.join(ROOT, "data");
+	? path.resolve(/* turbopackIgnore: true */ process.env.LH_DATA_DIR)
+	: path.join(/* turbopackIgnore: true */ ROOT, "data");
 
 /**
  * MULTI-USER PROFILES (2026-10-27): the data dir is the INSTALL root. It
@@ -30,15 +33,15 @@ const DATA_ROOT = process.env.LH_DATA_DIR
  */
 export const INSTALL = {
 	root: DATA_ROOT,
-	users: path.join(DATA_ROOT, "users.json"),
-	host: path.join(DATA_ROOT, "host.json"),
-	sessions: path.join(DATA_ROOT, "sessions.json"),
-	userDirs: path.join(DATA_ROOT, "users"),
+	users: path.join(/* turbopackIgnore: true */ DATA_ROOT, "users.json"),
+	host: path.join(/* turbopackIgnore: true */ DATA_ROOT, "host.json"),
+	sessions: path.join(/* turbopackIgnore: true */ DATA_ROOT, "sessions.json"),
+	userDirs: path.join(/* turbopackIgnore: true */ DATA_ROOT, "users"),
 } as const;
 
 /** The learner entries a profile owns — what the claim moves out of an
  *  unclaimed root into the first profile's folder. */
-export const LEARNER_ENTRIES = ["chats", "graph", "jobs", "settings.json", "prompts", "debug"] as const;
+export const LEARNER_ENTRIES = ["chats", "graph", "jobs", "settings.json", "prompts", "debug", "themes", "plugins", "plugins-state.json", "core-plugin-data"] as const;
 
 const USER_ID = /^usr_[a-z0-9]+$/;
 
@@ -49,7 +52,7 @@ export function isUserId(value: unknown): value is string {
 /** One profile's learner folder. */
 export function userDataDir(userId: string): string {
 	if (!isUserId(userId)) throw new Error(`Invalid user id: ${userId}`);
-	return path.join(INSTALL.userDirs, userId);
+	return path.join(/* turbopackIgnore: true */ INSTALL.userDirs, userId);
 }
 
 /** The active profile rides the async context of the request (and of
@@ -97,15 +100,15 @@ export const PATHS = {
 	},
 	/** Chat sessions (AI SDK UIMessage transcripts, one JSON file per chat). */
 	get chats(): string {
-		return path.join(learnerRoot(), "chats");
+		return path.join(/* turbopackIgnore: true */ learnerRoot(), "chats");
 	},
 	get graph(): string {
-		return path.join(learnerRoot(), "graph");
+		return path.join(/* turbopackIgnore: true */ learnerRoot(), "graph");
 	},
 	/** Debug artifacts (env-gated): debug/provider-events/<chatId>.jsonl
 	 * raw provider stream recordings (src/agent/provider-events.ts). */
 	get debug(): string {
-		return path.join(learnerRoot(), "debug");
+		return path.join(/* turbopackIgnore: true */ learnerRoot(), "debug");
 	},
 };
 
@@ -130,7 +133,8 @@ export type ModelRole =
 	| "visualMaker"
 	| "pdfReader"
 	| "extractor"
-	| "auditor";
+	| "auditor"
+	| "sideQuestion";
 
 /**
  * The LIVE graph store (src/store/graph.ts) — owned by the app's extraction
@@ -139,19 +143,19 @@ export type ModelRole =
  */
 export const LEDGER_FILES = {
 	get nodes(): string {
-		return path.join(PATHS.graph, "nodes.jsonl");
+		return path.join(/* turbopackIgnore: true */ PATHS.graph, "nodes.jsonl");
 	},
 	get chains(): string {
-		return path.join(PATHS.graph, "chains.jsonl");
+		return path.join(/* turbopackIgnore: true */ PATHS.graph, "chains.jsonl");
 	},
 	get sessions(): string {
-		return path.join(PATHS.graph, "sessions.jsonl");
+		return path.join(/* turbopackIgnore: true */ PATHS.graph, "sessions.jsonl");
 	},
 	/** Per-message extraction coverage (contracts/graph.ts CoverageEntry;
 	 *  the checkpoint's replacement for chat extractions — notes keep
 	 *  sessions.jsonl, whole-file as they are). */
 	get coverage(): string {
-		return path.join(PATHS.graph, "coverage.jsonl");
+		return path.join(/* turbopackIgnore: true */ PATHS.graph, "coverage.jsonl");
 	},
 };
 
@@ -161,17 +165,17 @@ export const LEDGER_FILES = {
  * log. Read-modify-write like a chat file, not append-only like the ledgers.
  */
 export function sourcesFile(): string {
-	return path.join(PATHS.graph, "sources.json");
+	return path.join(/* turbopackIgnore: true */ PATHS.graph, "sources.json");
 }
 /** Presentation-only source names/folder placement; never extraction identity. */
 export function sourceOrganizationFile(): string {
-	return path.join(PATHS.graph, "source-organization.json");
+	return path.join(/* turbopackIgnore: true */ PATHS.graph, "source-organization.json");
 }
 /** The layout ledger (read-modify-write like sources.json): nodeId →
  *  {x,y} resting positions from the incremental settle (core/layout.ts).
  *  Carries an updatedAt stamp for future live-physics conflict handling. */
 export function positionsFile(): string {
-	return path.join(PATHS.graph, "positions.json");
+	return path.join(/* turbopackIgnore: true */ PATHS.graph, "positions.json");
 }
 
 /**
@@ -179,7 +183,7 @@ export function positionsFile(): string {
  * read-modify-write. Shared shape/sanitizer: src/core/render-settings.ts.
  */
 export function renderSettingsFile(): string {
-	return path.join(PATHS.graph, "render-settings.json");
+	return path.join(/* turbopackIgnore: true */ PATHS.graph, "render-settings.json");
 }
 
 /** The graph-family FORMAT STAMP sidecar (schema-versioning wave,
@@ -188,7 +192,7 @@ export function renderSettingsFile(): string {
  *  graph-family write creates it. positions.json is REBUILDABLE and rides
  *  along unversioned by design (owner ruling). */
 export function graphFormatFile(): string {
-	return path.join(PATHS.graph, "format.json");
+	return path.join(/* turbopackIgnore: true */ PATHS.graph, "format.json");
 }
 
 /**
@@ -208,7 +212,7 @@ export function graphFormatFile(): string {
  * from birth, stamped from the strong slot.)
  */
 export function settingsFile(): string {
-	return path.join(learnerRoot(), "settings.json");
+	return path.join(/* turbopackIgnore: true */ learnerRoot(), "settings.json");
 }
 
 /**
@@ -225,7 +229,17 @@ export function settingsFile(): string {
  * a vanished segment stops composing but stays on disk.
  */
 export function promptsOverrideDir(): string {
-	return path.join(learnerRoot(), "prompts");
+	return path.join(/* turbopackIgnore: true */ learnerRoot(), "prompts");
+}
+
+/**
+ * Imported custom themes (theme wave, 2026-11-04): one `<id>.json` per
+ * theme (core/themes.ts ThemeFile shape), written by POST /api/themes and
+ * listed beside the built-in presets. The settings record names the
+ * active one by id (appearance.theme). Per profile, like the settings record.
+ */
+export function themesDir(): string {
+	return path.join(/* turbopackIgnore: true */ learnerRoot(), "themes");
 }
 
 /**
@@ -243,5 +257,5 @@ export function promptsOverrideDir(): string {
  * — this file keeps that role, alongside .env.local.
  */
 export const AUTH_FILE = process.env.LH_AUTH_FILE
-	? path.resolve(process.env.LH_AUTH_FILE)
-	: path.join(ROOT, "auth.json");
+	? path.resolve(/* turbopackIgnore: true */ process.env.LH_AUTH_FILE)
+	: path.join(/* turbopackIgnore: true */ ROOT, "auth.json");

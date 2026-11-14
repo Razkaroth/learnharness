@@ -75,9 +75,10 @@ export function KnowledgeSummary({
 				{count(importedNotes, "nav.summary.importedNotes.one", "nav.summary.importedNotes.other")}
 			</p>
 			{empty && (
-				<p className="pt-2 font-ui text-xs text-muted-foreground/70">
-					{t("nav.summary.empty")}
-				</p>
+				<div className="pt-2 font-ui text-xs text-muted-foreground/70">
+					<p>{t("nav.home.empty.start")}</p>
+					<p className="mt-1">{t("nav.home.empty.attach")}</p>
+				</div>
 			)}
 		</div>
 	);

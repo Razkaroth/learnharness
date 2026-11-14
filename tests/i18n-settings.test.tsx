@@ -8,7 +8,7 @@ import React from "react";
 
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { renderToStaticMarkup } from "react-dom/server";
+import { renderWithInteractionLayers as renderToStaticMarkup } from "./interaction-layer-render.tsx";
 import { I18nProvider } from "../components/i18n.tsx";
 import { AgentSection, sectionedSegments } from "../components/settings/agent-section.tsx";
 import { AppearanceSection, GraphSection } from "../components/settings/appearance-section.tsx";
@@ -16,9 +16,9 @@ import { KeyboardSection } from "../components/settings/keyboard-section.tsx";
 import { DictationLanguageSetting } from "../components/dictation-language.tsx";
 import { KeysSection, keyStatusLine } from "../components/settings/keys-section.tsx";
 
-const agent = () => <AgentSection agent={undefined} models={undefined} graph={undefined} compaction={undefined} onSectionChange={() => {}} onModelsChange={() => {}} onCompactionChange={() => {}} />;
-const appearance = () => <AppearanceSection appearance={undefined} onSectionChange={() => {}} />;
-const graph = () => <GraphSection graph={undefined} onSectionChange={() => {}} />;
+const agent = () => <AgentSection agent={undefined} models={undefined} graph={undefined} compaction={undefined} onSectionChange={() => true} onModelsChange={() => true} onCompactionChange={() => true} />;
+const appearance = () => <AppearanceSection appearance={undefined} onSectionChange={() => true} />;
+const graph = () => <GraphSection graph={undefined} onSectionChange={() => true} />;
 const es = (node: React.ReactNode) => renderToStaticMarkup(<I18nProvider initialLanguage="es">{node}</I18nProvider>);
 
 describe("settings sections under the Spanish provider", () => {
@@ -39,8 +39,8 @@ describe("settings sections under the Spanish provider", () => {
 	it("AppearanceSection + GraphSection: labels, hints and placeholders read Spanish", () => {
 		const html = es(appearance());
 		assert.ok(html.includes(">Fuente de lectura<"));
-		assert.ok(html.includes("Próximamente"));
-		assert.ok(html.includes('placeholder="igual que el texto"'));
+		assert.ok(html.includes("Tipografía"));
+		assert.ok(html.includes("Ligaduras de código"));
 		assert.ok(html.includes('data-testid="toggle-session-names-serif"'));
 		const g = es(graph());
 		assert.ok(g.includes(">Extracción<"));
@@ -70,9 +70,9 @@ describe("settings sections under the Spanish provider", () => {
 		const unset = { id: "X", info: null, present: false, masked: null, source: "none", shadowedByEnv: false } as const;
 		assert.equal(keyStatusLine(unset, "es"), "sin configurar");
 		assert.equal(keyStatusLine(unset), "not set");
-		const view = { prober: [], teacher: [] };
-		assert.deepEqual(sectionedSegments(view, "es").map((s) => s.label), ["Profesor", "Examinador", "Compartidas"]);
-		assert.deepEqual(sectionedSegments(view).map((s) => s.label), ["Teacher", "Prober", "Shared"]);
+		const view = { prober: [], teacher: [], practice: [] };
+		assert.deepEqual(sectionedSegments(view, "es").map((s) => s.label), ["Profesor", "Examinador", "Práctica", "Compartidas"]);
+		assert.deepEqual(sectionedSegments(view).map((s) => s.label), ["Teacher", "Prober", "Practice", "Shared"]);
 	});
 });
 
@@ -84,7 +84,7 @@ describe("settings sections without a provider", () => {
 		assert.ok(html.includes('aria-label="Strong model"'));
 		const a = renderToStaticMarkup(appearance());
 		assert.ok(a.includes(">Reading font<"));
-		assert.ok(a.includes('placeholder="same as text"'));
+		assert.ok(a.includes("Code ligatures"));
 		assert.ok(renderToStaticMarkup(graph()).includes(">Extraction<"));
 		assert.ok(renderToStaticMarkup(<KeyboardSection />).includes(">Rebind<"));
 	});

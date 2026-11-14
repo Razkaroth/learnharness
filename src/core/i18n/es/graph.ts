@@ -20,9 +20,9 @@ export const graph: Record<keyof typeof en, string> = {
 	"graph.chrome.noMatch": "Ningún nodo coincide.",
 	"graph.chrome.chainsHint": "Todas las cadenas de razonamiento",
 	"graph.chrome.chains": "Cadenas",
-	"graph.chrome.importHint": "Importar notas al grafo",
-	"graph.chrome.importing": "Importando…",
-	"graph.chrome.import": "Importar notas…",
+	"graph.chrome.importHint": "Extraer archivos al grafo",
+	"graph.chrome.importing": "Extrayendo…",
+	"graph.chrome.import": "Extraer archivos…",
 
 	// Pipeline costs
 	"graph.costs.hint": "Costos del grafo — haz clic para ver detalles",
@@ -100,7 +100,7 @@ export const graph: Record<keyof typeof en, string> = {
 		"Falló la solicitud de importación (HTTP {status}): {detail} Revisa el grafo antes de volver a intentarlo.",
 	"graph.import.unsupported": "Formato no compatible o ruta relativa no segura.",
 	"graph.import.tooBig": "Demasiado grande. Máximo 25 MB.",
-	"graph.import.menu": "Importar notas",
+	"graph.import.menu": "Extraer archivos al grafo",
 	"graph.import.files": "Archivos",
 	"graph.import.folder": "Carpeta",
 
@@ -150,4 +150,14 @@ export const graph: Record<keyof typeof en, string> = {
 
 	// Delete dialog: folder removal fallback
 	"graph.deleteNode.folderRemovalUnavailable": "No se pueden quitar carpetas.",
+
+	// Notes import: skipped picks
+	"graph.import.noExtension": "sin extensión",
+	"graph.import.skippedUnsupported.one": "Se omitió {n} archivo que no es texto, Markdown ni PDF ({extensions}).",
+	"graph.import.skippedUnsupported.other": "Se omitieron {n} archivos que no son texto, Markdown ni PDF ({extensions}).",
+	"graph.import.skippedUnsafe.one": "Se omitió {n} archivo con un nombre que la importación no puede usar (p. ej., un «:» en el nombre).",
+	"graph.import.skippedUnsafe.other": "Se omitieron {n} archivos con nombres que la importación no puede usar (p. ej., un «:» en el nombre).",
+
+	// Extract files menu
+	"graph.import.lessonsHint": "Para lecciones, adjunta el material a una sesión.",
 };

@@ -155,4 +155,15 @@ export const nav = {
 	// Stats bar (CLI and cache)
 	"nav.stats.cliWindow": "Window reported by Claude Code; may be lower for auto-compaction.",
 	"nav.stats.cacheHitRate": "Cache hit rate",
+
+	// Minimal home (empty)
+	"nav.home.empty.start": "Start a session to begin learning.",
+	"nav.home.empty.attach": "Attach your material with the paperclip or drag and drop.",
+
+	// Image focus overlay
+	"nav.media.image": "Image",
+	"nav.media.imageFocus": "Image focus",
+	"nav.media.fitImage": "Fit image to view",
+
+	"nav.kbd.toggle-question-thread": "Question · ask for a nudge (side thread)",
 } as const;

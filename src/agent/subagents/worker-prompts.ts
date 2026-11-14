@@ -14,6 +14,7 @@ export type WorkerPromptKey =
 	| "researcherFinalize"
 	| "demoBuilder"
 	| "visualMaker"
+	| "visualMakerImage"
 	| "pdfReader"
 	| "sessionPreamble"
 	| "notesPreamble"

@@ -304,4 +304,21 @@ export const settings: Record<keyof typeof en, string> = {
 	// Models: advanced toggle
 	"settings.agent.advanced.hide": "Ocultar ajustes avanzados",
 	"settings.agent.advanced.show": "Mostrar ajustes avanzados",
+
+	// Settings nav: plugins + save confirmation
+	"settings.section.corePlugins": "Plugins principales",
+	"settings.section.communityPlugins": "Plugins de la comunidad",
+	"settings.save.unconfirmed": "No se pudo confirmar la configuración guardada. Se conservó lo que escribiste.",
+
+	// Prompt sections: Practice + shared usage
+	"settings.agent.prompts.practice": "Práctica",
+	"settings.agent.prompts.and": "y",
+	"settings.agent.prompts.usedBy": "Las usa: {agents}",
+
+	// Appearance: themes and color overrides
+	"settings.appearance.colors": "Colores",
+	"settings.appearance.colors.hint": "· ajustes sobre el tema, se conservan al cambiarlo",
+	"settings.appearance.colors.resetAll": "Restablecer todo",
+	"settings.appearance.typography": "Tipografía",
+	"settings.appearance.codeLigatures": "Ligaduras de código",
 };

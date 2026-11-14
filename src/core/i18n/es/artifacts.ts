@@ -65,7 +65,7 @@ export const artifacts: Record<keyof typeof en, string> = {
 	"artifacts.toolCall.imagesAttached.one": "[{n} imagen adjunta para el modelo]",
 	"artifacts.toolCall.imagesAttached.other": "[{n} imágenes adjuntas para el modelo]",
 
-	"artifacts.probeDone.title": "Sondeo concluido — tu evaluación",
+	"artifacts.probeDone.title": "Evaluación del sondeo",
 	"artifacts.probeDone.retried": "El evaluador lo reintentó: {error}",
 	"artifacts.probeDone.malformed": "La evaluación estaba mal formada — el evaluador lo reintentó con una corregida.",
 	"artifacts.probeDone.writing": "Escribiendo la evaluación…",
@@ -184,4 +184,15 @@ export const artifacts: Record<keyof typeof en, string> = {
 	"artifacts.sources.saveFailed": "No se pudo guardar la organización de fuentes.",
 	"artifacts.sources.deleteFailed": "No se pudieron eliminar las fuentes.",
 	"artifacts.sources.addFolder": "Añadir carpeta",
+
+	// Plugin workers
+	"artifacts.activity.pluginWorker": "Trabajador de plugin",
+	"artifacts.dispatch.kind.plugin": "Trabajador de plugin",
+
+	// Probe assessment strands
+	"artifacts.probeDone.strands.one": "{n} hilo",
+	"artifacts.probeDone.strands.other": "{n} hilos",
+
+	// Practice: custom plugin input
+	"artifacts.practice.submitShort": "Enviar",
 };

@@ -156,4 +156,15 @@ export const nav: Record<keyof typeof en, string> = {
 	// Stats bar (CLI and cache)
 	"nav.stats.cliWindow": "Ventana reportada por Claude Code; puede ser menor por la compactación automática.",
 	"nav.stats.cacheHitRate": "Tasa de aciertos de caché",
+
+	// Minimal home (empty)
+	"nav.home.empty.start": "Inicia una sesión para empezar a aprender.",
+	"nav.home.empty.attach": "Adjunta tu material con el clip o arrastrándolo y soltándolo.",
+
+	// Image focus overlay
+	"nav.media.image": "Imagen",
+	"nav.media.imageFocus": "Enfoque de imagen",
+	"nav.media.fitImage": "Ajustar imagen a la vista",
+
+	"nav.kbd.toggle-question-thread": "Pregunta · pide una pista (hilo lateral)",
 };

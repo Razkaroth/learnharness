@@ -8,7 +8,7 @@ import React from "react";
 
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { renderToStaticMarkup } from "react-dom/server";
+import { renderWithInteractionLayers as renderToStaticMarkup } from "./interaction-layer-render.tsx";
 import { DEFAULT_RENDER_SETTINGS } from "../src/core/render-settings.ts";
 import { I18nProvider } from "../components/i18n.tsx";
 import { GraphChromeRow } from "../components/graph-view.tsx";
@@ -57,7 +57,7 @@ describe("graph surface i18n", () => {
 		const html = renderToStaticMarkup(<I18nProvider initialLanguage="es">{surfaces}</I18nProvider>);
 		assert.ok(html.includes('placeholder="Buscar nodos…"'));
 		assert.ok(html.includes("Ningún nodo coincide."));
-		assert.ok(html.includes("Importar notas…"));
+		assert.ok(html.includes("Extraer archivos…"));
 		assert.ok(html.includes("¿Eliminar 3 nodos?"));
 		assert.ok(html.includes("Esto elimina los 3 nodos de forma permanente"));
 		assert.ok(html.includes("Hay una extracción en curso"));

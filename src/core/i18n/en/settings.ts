@@ -303,4 +303,21 @@ export const settings = {
 	// Models: advanced toggle
 	"settings.agent.advanced.hide": "Hide advanced settings",
 	"settings.agent.advanced.show": "Show advanced settings",
+
+	// Settings nav: plugins + save confirmation
+	"settings.section.corePlugins": "Core plugins",
+	"settings.section.communityPlugins": "Community plugins",
+	"settings.save.unconfirmed": "Could not confirm saved settings. Your input has been kept.",
+
+	// Prompt sections: Practice + shared usage
+	"settings.agent.prompts.practice": "Practice",
+	"settings.agent.prompts.and": "and",
+	"settings.agent.prompts.usedBy": "Used by {agents}",
+
+	// Appearance: themes and color overrides
+	"settings.appearance.colors": "Colors",
+	"settings.appearance.colors.hint": "· overrides on top of the theme, kept when you switch",
+	"settings.appearance.colors.resetAll": "Reset all",
+	"settings.appearance.typography": "Typography",
+	"settings.appearance.codeLigatures": "Code ligatures",
 } as const;

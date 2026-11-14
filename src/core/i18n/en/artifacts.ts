@@ -64,7 +64,7 @@ export const artifacts = {
 	"artifacts.toolCall.imagesAttached.one": "[{n} image attached to the model]",
 	"artifacts.toolCall.imagesAttached.other": "[{n} images attached to the model]",
 
-	"artifacts.probeDone.title": "Probe concluded — your assessment",
+	"artifacts.probeDone.title": "Probe assessment",
 	"artifacts.probeDone.retried": "The prober retried: {error}",
 	"artifacts.probeDone.malformed": "The assessment was malformed — the prober retried with a corrected one.",
 	"artifacts.probeDone.writing": "Writing the assessment…",
@@ -183,4 +183,15 @@ export const artifacts = {
 	"artifacts.sources.saveFailed": "Could not save source organization.",
 	"artifacts.sources.deleteFailed": "Could not delete sources.",
 	"artifacts.sources.addFolder": "Add folder",
+
+	// Plugin workers
+	"artifacts.activity.pluginWorker": "Plugin worker",
+	"artifacts.dispatch.kind.plugin": "Plugin worker",
+
+	// Probe assessment strands
+	"artifacts.probeDone.strands.one": "{n} strand",
+	"artifacts.probeDone.strands.other": "{n} strands",
+
+	// Practice: custom plugin input
+	"artifacts.practice.submitShort": "Submit",
 } as const;

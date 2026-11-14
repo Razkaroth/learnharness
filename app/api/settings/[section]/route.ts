@@ -30,15 +30,18 @@
  * lands here.
  */
 
-import type { AgentSettings, ChatSettings, ModelsSettings } from "@/src/core";
+import { isBuiltinThemeId, type AgentSettings, type AppearanceSettings, type ChatSettings, type ModelsSettings } from "@/src/core";
 import {
 	SETTINGS_SECTIONS,
 	allSegmentPaths,
 	clampChatLevel,
 	clampModelsLevels,
 	effectiveSettings,
+	fileAccessConfigurationError,
 	promptOverrides,
 	readSettingsRecord,
+	refreshWorkerRequestAdmission,
+	themeStore,
 	validateChatSettings,
 	validateModelsSettings,
 	withUser,
@@ -86,6 +89,19 @@ async function handlePUT(request: Request, ctx: { params: Promise<{ section: str
 			return Response.json({ error: verdict.error, supported: verdict.supported }, { status: 400 });
 		}
 	}
+	// A newly selected theme must exist. A saved theme whose file vanished
+	// already renders as Default: heal that unchanged reference on write,
+	// rather than trapping unrelated font/size/ligature edits behind a 400.
+	if (section === "appearance") {
+		const appearance = parsed.settings as AppearanceSettings;
+		const theme = appearance.theme;
+		if (theme !== undefined && !isBuiltinThemeId(theme) && themeStore.readTheme(theme) === null) {
+			if (theme !== record.appearance?.theme) {
+				return Response.json({ error: `unknown theme "${theme}"` }, { status: 400 });
+			}
+			appearance.theme = "default";
+		}
+	}
 	if (section === "agent") {
 		// Orphan-heal (contract fix, interlude 2026-09-26): an ON switch
 		// whose override file is gone (or whose segment left the source
@@ -129,8 +145,12 @@ async function handlePUT(request: Request, ctx: { params: Promise<{ section: str
 	// Read-modify-write ONE section of the record; everything else rides
 	// along untouched (other sections, unknown keys — sanitize preserves).
 	const next = { ...record, [section]: sectionOut };
-	writeSettingsRecord(next);
-	return Response.json({ settings: next });
+	const stored = writeSettingsRecord(next);
+	// Only a successful durable write changes admission. Increasing the
+	// limit immediately drains queued requests; decreasing never cancels active work.
+	refreshWorkerRequestAdmission();
+	const fileAccessError = fileAccessConfigurationError();
+	return Response.json({ settings: stored, ...(fileAccessError ? { fileAccessError } : {}) });
 }
 
 export const PUT = withUser(handlePUT);
