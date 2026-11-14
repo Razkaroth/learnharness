@@ -3,14 +3,14 @@ import * as path from "node:path";
 import { createHash, randomUUID } from "node:crypto";
 import { createRequire } from "node:module";
 import type { AgentTool } from "@earendil-works/pi-agent-core";
-import { PLUGIN_ID_PATTERN, parsePluginManifest } from "../core/plugins.ts";
+import { PLUGIN_ID_PATTERN, PLUGIN_LOCALE_FILE, PLUGIN_LOCALE_MAX_BYTES, parsePluginLocale, parsePluginManifest, pluginTranslate } from "../core/plugins.ts";
 import { validatePluginSchema } from "../core/plugin-validation.ts";
 import { createPluginQuestionParameters, preparePluginQuestionType } from "../core/plugin-questions.ts";
 import type { PluginQuestionVariant } from "../core/plugin-questions.ts";
 import type { NativePluginQuestionDefinition } from "../agent/plugin-question-tools.ts";
 import { preparePluginProblemType, createPluginProblemParameters, type NativePluginProblemDefinition } from "../core/plugin-problems.ts";
 import type { NativePluginProblemContribution } from "../agent/plugin-problem-tools.ts";
-import type { PluginAgentKind, PluginBackendContext, PluginBackendModule, PluginCleanup, PluginFrontendContext, PluginInfo, PluginInference, PluginInstructions, PluginLearningData, PluginManifest, PluginNotification, PluginToolContext, PluginTools } from "../core/plugins.ts";
+import type { PluginAgentKind, PluginBackendContext, PluginBackendModule, PluginCleanup, PluginFrontendContext, PluginInfo, PluginInference, PluginInstructions, PluginLearningData, PluginLocale, PluginLocales, PluginManifest, PluginNotification, PluginToolContext, PluginTools } from "../core/plugins.ts";
 import type { PluginAgentService } from "../core/plugin-agents.ts";
 import type { PluginWorkerService } from "../core/plugin-workers.ts";
 import type { ServerEvent } from "../core/events.ts";
@@ -39,7 +39,7 @@ export interface PluginHostDependencies {
 	/** App-owned flat built packages and a separate writable data root. */
 	core?: { directory: string; dataDirectory: string; ids: readonly string[] };
 	appVersion: string;
-	createServices(info: { manifest: PluginManifest; directory: string; dataDirectory: string; signal: AbortSignal; cleanup: (fn: PluginCleanup) => void }): {
+	createServices(info: { manifest: PluginManifest; locales?: PluginLocales; directory: string; dataDirectory: string; signal: AbortSignal; cleanup: (fn: PluginCleanup) => void }): {
 		learning: PluginLearningData; inference: PluginInference; agents: PluginAgentService; workers: PluginWorkerService;
 		createBackgroundTool: PluginBackendContext["createBackgroundTool"];
 	};
@@ -50,6 +50,8 @@ export interface PluginHostDependencies {
 	subscribeEvents?: (listener: (event: ServerEvent) => void) => () => void;
 	/** Startup installation/recovery failures, including failures before a package directory exists. */
 	installationErrors?: Record<string, string>;
+	/** The app language plugin text uses, read at call time (default `en`). */
+	language?: () => string;
 }
 interface Instructions { agents: Set<PluginAgentKind>; text: string }
 interface Tools { agents: Set<PluginAgentKind>; create: PluginTools["create"] }
@@ -159,16 +161,26 @@ function snapshot(rootDirectory: string, id: string, appVersion: string, origin:
 			const stat = fs.lstatSync(path.join(directory, file));
 			if (stat.isSymbolicLink()) throw new Error(`Symlinks are not allowed in plugin package files: ${file}`);
 			if (stat.isDirectory()) {
-				if (file === "assets" || file.startsWith("assets/")) collect(file);
+				if (file === "assets" || file.startsWith("assets/") || file === "locales") collect(file);
 			} else if (stat.isFile()) files.set(file, fs.readFileSync(/* turbopackIgnore: true */ regularFile(directory, file)));
 			else throw new Error(`Invalid plugin file: ${file}`);
 		}
 	}
 	collect("");
 	for (const entry of [manifest.main, manifest.backend, manifest.styles]) if (entry && !files.has(entry)) throw new Error(`Missing plugin entry: ${entry}`);
+	const locales: Record<string, PluginLocale> = {};
+	for (const [file, bytes] of files) {
+		if (!file.startsWith("locales/")) continue;
+		const language = PLUGIN_LOCALE_FILE.exec(file)?.[1];
+		if (!language) throw new Error(`Invalid plugin locale file: ${file} (expected locales/<language>.json)`);
+		if (bytes.length > PLUGIN_LOCALE_MAX_BYTES) throw new Error(`Plugin locale too large: ${file}`);
+		let value: unknown;
+		try { value = JSON.parse(bytes.toString("utf8")); } catch { throw new Error(`Invalid plugin locale ${file}: not JSON`); }
+		locales[language] = parsePluginLocale(value, file);
+	}
 	const hash = createHash("sha256");
 	for (const [file, bytes] of files) { hash.update(`${file.length}:${file}:${bytes.length}:`); hash.update(bytes); }
-	return { rootDirectory, directory, files, info: { id, origin, manifest, enabled: false, status: "disabled", revision: hash.digest("hex") } };
+	return { rootDirectory, directory, files, info: { id, origin, manifest, ...(Object.keys(locales).length ? { locales: Object.freeze(locales) } : {}), enabled: false, status: "disabled", revision: hash.digest("hex") } };
 }
 const mimeTypes: Record<string, string> = {
 	".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8", ".json": "application/json; charset=utf-8",
@@ -242,11 +254,13 @@ export function createPluginHost(deps: PluginHostDependencies) {
 			if (manifest.backend) {
 				pluginRoot(pkg.rootDirectory);
 				const dataDirectory = safePluginDataDirectory(directory, manifest.id, coreData, true)!;
-				const services = deps.createServices({ manifest, directory: pkg.directory, dataDirectory, signal: activation.controller.signal, cleanup });
+				const services = deps.createServices({ manifest, locales: pkg.info.locales, directory: pkg.directory, dataDirectory, signal: activation.controller.signal, cleanup });
+				const language = () => deps.language?.() ?? "en";
 				cleanup(() => services.agents.dispose());
 				cleanup(() => services.workers.dispose());
 				const ctx: PluginBackendContext = {
 					manifest, directory: pkg.directory, dataDirectory, signal: activation.controller.signal, cleanup, ...services,
+					i18n: Object.freeze({ language, t: (key: string, vars?: Readonly<Record<string, string | number>>, lang?: string) => pluginTranslate(pkg.info.locales, lang ?? language(), key, vars) }),
 					createBackgroundTool(context, definition) { requireLive(); return services.createBackgroundTool(context, definition); },
 					registerInstructions(contribution: PluginInstructions) {
 						requireLive();

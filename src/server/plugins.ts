@@ -20,7 +20,8 @@ import { createPluginTransport } from "./plugin-transport.ts";
 import { createPluginDocumentConverter } from "./plugin-documents.ts";
 import { ROOT_PLUGIN_PROFILE, inPluginProfile, pluginProfile, pluginRuntime, setPluginRuntime, type PluginRuntimeEntry } from "./plugin-runtimes.ts";
 import type { AgentBuildOptions } from "../agent/teacher-agent.ts";
-import { stores } from "./stores.ts";
+import { effectiveSettings, stores } from "./stores.ts";
+import { localizedPluginManifest } from "../core/plugins.ts";
 import { isTurnRunning } from "./turn-liveness.ts";
 import { compactionInFlight } from "./compaction.ts";
 import { registryExists } from "../store/users.ts";
@@ -63,12 +64,14 @@ function runtime(profile = pluginProfile()): Runtime {
 			},
 		}));
 		const installationErrors: Record<string, string> = Object.create(null);
+		const language = () => inPluginProfile(profile, () => effectiveSettings().general.language);
 		const host = createPluginHost({
 			directory, core, appVersion: packageJson.version, installationErrors,
 			// Each profile's runtime owns its plugin activations; worker requests
 			// still share the process-wide admission slots.
 			convertDocument: createPluginDocumentConverter().convert,
-			createServices({ manifest, dataDirectory, signal }) {
+			language,
+			createServices({ manifest, locales, dataDirectory, signal }) {
 				const inference = createPluginInference({ signal, dataDirectory });
 				const agents = createPluginAgentService({
 					store: createPluginAgentRecordStore(path.join(/* turbopackIgnore: true */ dataDirectory, "agents")),
@@ -76,7 +79,7 @@ function runtime(profile = pluginProfile()): Runtime {
 					onChange: () => { if (!signal.aborted) inPluginProfile(profile, () => emit("plugin-message", { pluginId: manifest.id, topic: "agents-changed" })); },
 				});
 				const workerActivity = registerPluginWorkerActivity({
-					profile, pluginId: manifest.id, pluginName: manifest.name, signal,
+					profile, pluginId: manifest.id, pluginName: () => localizedPluginManifest(manifest, locales, language()).name, signal,
 					cancel: taskId => workers.cancel(taskId),
 				});
 				const workers = createPluginWorkerService({

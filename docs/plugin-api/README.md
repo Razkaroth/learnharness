@@ -71,6 +71,7 @@ The SDK is **type-only**. Call the contexts supplied by LearnHarness, not runtim
 | [PluginAgentSnapshot](plugin-agents.md#pluginagentsnapshot) | `plugin-agents` |
 | [PluginAgentTool](plugin-agents.md#pluginagenttool) | `plugin-agents` |
 | [PluginBackendContext](plugins.md#pluginbackendcontext) | `plugins` |
+| [PluginBackendI18n](plugins.md#pluginbackendi18n) | `plugins` |
 | [PluginBackendModule](plugins.md#pluginbackendmodule) | `plugins` |
 | [PluginBackgroundMeta](plugin-workers.md#pluginbackgroundmeta) | `plugin-workers` |
 | [PluginBackgroundPresentation](plugin-workers.md#pluginbackgroundpresentation) | `plugin-workers` |
@@ -90,6 +91,7 @@ The SDK is **type-only**. Call the contexts supplied by LearnHarness, not runtim
 | [PluginDictationHandle](plugin-ui.md#plugindictationhandle) | `plugin-ui` |
 | [PluginDictationProps](plugin-ui.md#plugindictationprops) | `plugin-ui` |
 | [PluginFrontendContext](plugins.md#pluginfrontendcontext) | `plugins` |
+| [PluginFrontendI18n](plugins.md#pluginfrontendi18n) | `plugins` |
 | [PluginFrontendModule](plugins.md#pluginfrontendmodule) | `plugins` |
 | [PluginGraphFileData](plugins.md#plugingraphfiledata) | `plugins` |
 | [PluginInference](plugins.md#plugininference) | `plugins` |
@@ -99,6 +101,8 @@ The SDK is **type-only**. Call the contexts supplied by LearnHarness, not runtim
 | [PluginInstructions](plugins.md#plugininstructions) | `plugins` |
 | [PluginKnowledgePickerProps](plugin-ui.md#pluginknowledgepickerprops) | `plugin-ui` |
 | [PluginLearningData](plugins.md#pluginlearningdata) | `plugins` |
+| [PluginLocale](plugins.md#pluginlocale) | `plugins` |
+| [PluginLocales](plugins.md#pluginlocales) | `plugins` |
 | [PluginManifest](plugins.md#pluginmanifest) | `plugins` |
 | [PluginMarkdownProps](plugin-ui.md#pluginmarkdownprops) | `plugin-ui` |
 | [PluginMenuItem](plugin-ui.md#pluginmenuitem) | `plugin-ui` |
@@ -172,6 +176,7 @@ The SDK is **type-only**. Call the contexts supplied by LearnHarness, not runtim
 | [PluginToolRenderer](plugins.md#plugintoolrenderer) | `plugins` |
 | [PluginToolRenderProps](plugins.md#plugintoolrenderprops) | `plugins` |
 | [PluginTools](plugins.md#plugintools) | `plugins` |
+| [PluginTranslationVars](plugins.md#plugintranslationvars) | `plugins` |
 | [PluginTreeColumn](plugin-tree.md#plugintreecolumn) | `plugin-tree` |
 | [PluginTreeContent](plugin-tree.md#plugintreecontent) | `plugin-tree` |
 | [PluginTreeProps](plugin-tree.md#plugintreeprops) | `plugin-tree` |
@@ -256,4 +261,4 @@ These are reachable through public data, event, inheritance or helper-type relat
 
 Standard JavaScript/DOM types (`Promise`, `AbortSignal`, `File`, `HTMLElement`, and utility types) use their standard contracts. Pi model/messages/tools and TypeBox schemas use the exact peer versions declared by the bundled SDK's `package.json`. Supply those peers when typechecking; they are development types, not permission to import private LearnHarness runtime modules.
 
-Coverage: **140 public types**, **57 supporting declarations**, **894 declared member signatures/variants**. Generation contains no build timestamps or absolute source paths.
+Coverage: **145 public types**, **57 supporting declarations**, **901 declared member signatures/variants**. Generation contains no build timestamps or absolute source paths.

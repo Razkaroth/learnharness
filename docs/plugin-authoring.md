@@ -123,6 +123,7 @@ Community packages use this writable installation layout:
     backend.cjs      # optional Node CommonJS module
     styles.css       # optional; requires a frontend entry
     assets/          # public distributable assets/modules
+    locales/         # optional text dictionaries: en.json, es.json, ...
   data/              # persistent sibling; never distribute or serve it
 ```
 
@@ -161,6 +162,31 @@ Repository source stays in `plugins/`. `npm run plugins:build-core` builds the s
 catalog in `core-plugins.json` and stages generated packages. UI Showcase remains a
 source/developer example, not a shipped core package. This build command never installs
 or enables a package in a learning-data directory.
+
+### Text and translations
+
+Ship user-facing text as flat JSON dictionaries in `dist/locales/<language>.json`, one per
+app language (`en`, `es`, ...). Each file maps keys to strings, with `{name}` placeholders:
+
+```json
+{ "manifest.name": "Flashcards", "review.due": "{count} cards due" }
+```
+
+The host loads the folder with the package (other files there are refused, 256 KiB per
+file) and exposes it as `ctx.i18n` on both sides. `ctx.i18n.t(key, vars)` returns the text
+in the app language, falling back to `en`, then to the key itself. The keys
+`manifest.name` and `manifest.description` replace those manifest fields wherever the host
+shows the plugin (settings, view titles, shortcuts, background work); `ctx.manifest`
+stays the raw manifest.
+
+- Frontend: `ctx.i18n.language` is fixed for the activation. A language change
+  re-activates the frontend, so read text during activation and mounts.
+- Backend: `ctx.i18n.language()` reads the profile's language at call time, so look text
+  up when you build a prompt or response, not once at activation. Pass a language as the
+  third argument of `t` to override it.
+
+Translate agent instructions and model-facing prompts the same way when they should
+follow the learner's language. Keep keys identical across dictionaries.
 
 ### Install a prebuilt package
 
@@ -504,7 +530,8 @@ model requests or learning-data changes; the plugin may later save returned text
 
 ## Backend and data
 
-CommonJS backends export `activate(ctx)`. Activation is once per server; return cleanup
+CommonJS backends export `activate(ctx)`. Activation is once per learner profile, each with
+its own module instance, `ctx.dataDirectory` and enabled state; return cleanup
 or register it with `ctx.cleanup`. Host resources honor `ctx.signal`; custom tasks must
 cooperate and recheck cancellation after awaits before side effects. There is no
 per-plugin process or forced termination of uncooperative code.

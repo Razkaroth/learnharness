@@ -9,11 +9,13 @@
 - [PluginActionPlacement](#pluginactionplacement)
 - [PluginAgentKind](#pluginagentkind)
 - [PluginBackendContext](#pluginbackendcontext)
+- [PluginBackendI18n](#pluginbackendi18n)
 - [PluginBackendModule](#pluginbackendmodule)
 - [PluginCleanup](#plugincleanup)
 - [PluginCodeBlockProps](#plugincodeblockprops)
 - [PluginCodeBlockRenderer](#plugincodeblockrenderer)
 - [PluginFrontendContext](#pluginfrontendcontext)
+- [PluginFrontendI18n](#pluginfrontendi18n)
 - [PluginFrontendModule](#pluginfrontendmodule)
 - [PluginGraphFileData](#plugingraphfiledata)
 - [PluginInference](#plugininference)
@@ -22,6 +24,8 @@
 - [PluginInfo](#plugininfo)
 - [PluginInstructions](#plugininstructions)
 - [PluginLearningData](#pluginlearningdata)
+- [PluginLocale](#pluginlocale)
+- [PluginLocales](#pluginlocales)
 - [PluginManifest](#pluginmanifest)
 - [PluginNotification](#pluginnotification)
 - [PluginPageActionContext](#pluginpageactioncontext)
@@ -30,6 +34,7 @@
 - [PluginToolRenderer](#plugintoolrenderer)
 - [PluginToolRenderProps](#plugintoolrenderprops)
 - [PluginTools](#plugintools)
+- [PluginTranslationVars](#plugintranslationvars)
 - [PluginView](#pluginview)
 
 ## PluginAction
@@ -255,6 +260,7 @@ export interface PluginBackendContext {
     readonly dataDirectory: string;
     readonly signal: AbortSignal;
     cleanup(dispose: PluginCleanup): void;
+    readonly i18n: PluginBackendI18n;
     learning: PluginLearningData;
     inference: PluginInference;
     agents: PluginAgentService;
@@ -272,7 +278,7 @@ export interface PluginBackendContext {
 }
 ```
 
-**Related types:** [PluginAgentService](plugin-agents.md#pluginagentservice), [PluginBackgroundTool](plugin-workers.md#pluginbackgroundtool), [PluginCleanup](plugins.md#plugincleanup), [PluginInference](plugins.md#plugininference), [PluginInstructions](plugins.md#plugininstructions), [PluginLearningData](plugins.md#pluginlearningdata), [PluginManifest](plugins.md#pluginmanifest), [PluginProblemTypeDefinition](plugin-problems.md#pluginproblemtypedefinition), [PluginQuestionTypeDefinition](plugin-questions.md#pluginquestiontypedefinition), [PluginToolContext](plugins.md#plugintoolcontext), [PluginTools](plugins.md#plugintools), [PluginWorkerService](plugin-workers.md#pluginworkerservice), [ServerEvent](events.md#serverevent).
+**Related types:** [PluginAgentService](plugin-agents.md#pluginagentservice), [PluginBackendI18n](plugins.md#pluginbackendi18n), [PluginBackgroundTool](plugin-workers.md#pluginbackgroundtool), [PluginCleanup](plugins.md#plugincleanup), [PluginInference](plugins.md#plugininference), [PluginInstructions](plugins.md#plugininstructions), [PluginLearningData](plugins.md#pluginlearningdata), [PluginManifest](plugins.md#pluginmanifest), [PluginProblemTypeDefinition](plugin-problems.md#pluginproblemtypedefinition), [PluginQuestionTypeDefinition](plugin-questions.md#pluginquestiontypedefinition), [PluginToolContext](plugins.md#plugintoolcontext), [PluginTools](plugins.md#plugintools), [PluginWorkerService](plugin-workers.md#pluginworkerservice), [ServerEvent](events.md#serverevent).
 
 **Member index** (including nested object members; inherited members are defined in the linked base types):
 
@@ -281,6 +287,7 @@ export interface PluginBackendContext {
 - [dataDirectory](#pluginbackendcontext-datadirectory)
 - [signal](#pluginbackendcontext-signal)
 - [cleanup](#pluginbackendcontext-cleanup)
+- [i18n](#pluginbackendcontext-i18n)
 - [learning](#pluginbackendcontext-learning)
 - [inference](#pluginbackendcontext-inference)
 - [agents](#pluginbackendcontext-agents)
@@ -340,6 +347,14 @@ cleanup(dispose: PluginCleanup): void;
 | `dispose` | `PluginCleanup` |
 
 **Returns:** `void`.
+
+### PluginBackendContext i18n
+
+This package's `locales/*.json` text in the profile's app language.
+
+```ts
+readonly i18n: PluginBackendI18n;
+```
 
 ### PluginBackendContext learning
 
@@ -515,6 +530,50 @@ emit(topic: string, data?: unknown): void;
 
 **Returns:** `void`.
 
+## PluginBackendI18n
+
+Public SDK type, exported as `PluginBackendI18n`. Import with `import type`; the SDK has no runtime exports.
+
+Backend text lookup. `language()` reads the profile's current app language
+at call time; `t` uses it unless a language is passed. Missing keys fall back
+to `en`, then to the key itself.
+
+```ts
+export interface PluginBackendI18n {
+    language(): string;
+    t(key: string, vars?: PluginTranslationVars, language?: string): string;
+}
+```
+
+**Related types:** [PluginTranslationVars](plugins.md#plugintranslationvars).
+
+**Member index** (including nested object members; inherited members are defined in the linked base types):
+
+- [language](#pluginbackendi18n-language)
+- [t](#pluginbackendi18n-t)
+
+### PluginBackendI18n language
+
+```ts
+language(): string;
+```
+
+**Returns:** `string`.
+
+### PluginBackendI18n t
+
+```ts
+t(key: string, vars?: PluginTranslationVars, language?: string): string;
+```
+
+| Parameter | Type |
+| --- | --- |
+| `key` | `string` |
+| `vars?` | `PluginTranslationVars` |
+| `language?` | `string` |
+
+**Returns:** `string`.
+
 ## PluginBackendModule
 
 Public SDK type, exported as `PluginBackendModule`. Import with `import type`; the SDK has no runtime exports.
@@ -664,6 +723,7 @@ export interface PluginFrontendContext {
     readonly manifest: PluginManifest;
     readonly signal: AbortSignal;
     cleanup(dispose: PluginCleanup): void;
+    readonly i18n: PluginFrontendI18n;
     registerView(view: PluginView): () => void;
     registerAction(action: PluginAction): () => void;
     placeAction(placement: PluginActionPlacement): () => void;
@@ -701,13 +761,14 @@ export interface PluginFrontendContext {
 }
 ```
 
-**Related types:** [PluginAction](plugins.md#pluginaction), [PluginActionPlacement](plugins.md#pluginactionplacement), [PluginCleanup](plugins.md#plugincleanup), [PluginCodeBlockRenderer](plugins.md#plugincodeblockrenderer), [PluginManifest](plugins.md#pluginmanifest), [PluginNotification](plugins.md#pluginnotification), [PluginProblemRenderer](plugin-problems.md#pluginproblemrenderer), [PluginQuestionRenderer](plugin-questions.md#pluginquestionrenderer), [PluginSettingsRegistration](plugins.md#pluginsettingsregistration), [PluginSettingsSchema](plugin-ui.md#pluginsettingsschema), [PluginSubmissionInterceptor](plugin-submissions.md#pluginsubmissioninterceptor), [PluginToolRenderer](plugins.md#plugintoolrenderer), [PluginUi](plugin-ui.md#pluginui), [PluginView](plugins.md#pluginview), [PluginWidgetHandle](plugin-ui.md#pluginwidgethandle), [ServerEvent](events.md#serverevent).
+**Related types:** [PluginAction](plugins.md#pluginaction), [PluginActionPlacement](plugins.md#pluginactionplacement), [PluginCleanup](plugins.md#plugincleanup), [PluginCodeBlockRenderer](plugins.md#plugincodeblockrenderer), [PluginFrontendI18n](plugins.md#pluginfrontendi18n), [PluginManifest](plugins.md#pluginmanifest), [PluginNotification](plugins.md#pluginnotification), [PluginProblemRenderer](plugin-problems.md#pluginproblemrenderer), [PluginQuestionRenderer](plugin-questions.md#pluginquestionrenderer), [PluginSettingsRegistration](plugins.md#pluginsettingsregistration), [PluginSettingsSchema](plugin-ui.md#pluginsettingsschema), [PluginSubmissionInterceptor](plugin-submissions.md#pluginsubmissioninterceptor), [PluginToolRenderer](plugins.md#plugintoolrenderer), [PluginUi](plugin-ui.md#pluginui), [PluginView](plugins.md#pluginview), [PluginWidgetHandle](plugin-ui.md#pluginwidgethandle), [ServerEvent](events.md#serverevent).
 
 **Member index** (including nested object members; inherited members are defined in the linked base types):
 
 - [manifest](#pluginfrontendcontext-manifest)
 - [signal](#pluginfrontendcontext-signal)
 - [cleanup](#pluginfrontendcontext-cleanup)
+- [i18n](#pluginfrontendcontext-i18n)
 - [registerView](#pluginfrontendcontext-registerview)
 - [registerAction](#pluginfrontendcontext-registeraction)
 - [placeAction](#pluginfrontendcontext-placeaction)
@@ -762,6 +823,14 @@ cleanup(dispose: PluginCleanup): void;
 | `dispose` | `PluginCleanup` |
 
 **Returns:** `void`.
+
+### PluginFrontendContext i18n
+
+This package's `locales/*.json` text in the window's app language.
+
+```ts
+readonly i18n: PluginFrontendI18n;
+```
 
 ### PluginFrontendContext registerView
 
@@ -1136,6 +1205,47 @@ openSettings(): void;
 
 **Returns:** `void`.
 
+## PluginFrontendI18n
+
+Public SDK type, exported as `PluginFrontendI18n`. Import with `import type`; the SDK has no runtime exports.
+
+Frontend text lookup. A language change re-activates the frontend, so read
+`language` and call `t` during activation and mounts. Missing keys fall back
+to `en`, then to the key itself.
+
+```ts
+export interface PluginFrontendI18n {
+    readonly language: string;
+    t(key: string, vars?: PluginTranslationVars): string;
+}
+```
+
+**Related types:** [PluginTranslationVars](plugins.md#plugintranslationvars).
+
+**Member index** (including nested object members; inherited members are defined in the linked base types):
+
+- [language](#pluginfrontendi18n-language)
+- [t](#pluginfrontendi18n-t)
+
+### PluginFrontendI18n language
+
+```ts
+readonly language: string;
+```
+
+### PluginFrontendI18n t
+
+```ts
+t(key: string, vars?: PluginTranslationVars): string;
+```
+
+| Parameter | Type |
+| --- | --- |
+| `key` | `string` |
+| `vars?` | `PluginTranslationVars` |
+
+**Returns:** `string`.
+
 ## PluginFrontendModule
 
 Public SDK type, exported as `PluginFrontendModule`. Import with `import type`; the SDK has no runtime exports.
@@ -1391,6 +1501,7 @@ export interface PluginInfo {
     id: string;
     origin: "core" | "community";
     manifest?: PluginManifest;
+    locales?: PluginLocales;
     enabled: boolean;
     status: "disabled" | "active" | "error";
     error?: string;
@@ -1398,13 +1509,14 @@ export interface PluginInfo {
 }
 ```
 
-**Related types:** [PluginManifest](plugins.md#pluginmanifest).
+**Related types:** [PluginLocales](plugins.md#pluginlocales), [PluginManifest](plugins.md#pluginmanifest).
 
 **Member index** (including nested object members; inherited members are defined in the linked base types):
 
 - [id](#plugininfo-id)
 - [origin](#plugininfo-origin)
 - [manifest](#plugininfo-manifest)
+- [locales](#plugininfo-locales)
 - [enabled](#plugininfo-enabled)
 - [status](#plugininfo-status)
 - [error](#plugininfo-error)
@@ -1428,6 +1540,14 @@ origin: "core" | "community";
 
 ```ts
 manifest?: PluginManifest;
+```
+
+### PluginInfo locales
+
+Host-loaded package dictionaries; absent when the package ships none.
+
+```ts
+locales?: PluginLocales;
 ```
 
 ### PluginInfo enabled
@@ -1573,6 +1693,30 @@ readGraphFile<K extends keyof PluginGraphFileData>(name: K): PluginGraphFileData
 | `name` | `K` |
 
 **Returns:** `PluginGraphFileData[K]`.
+
+## PluginLocale
+
+Public SDK type, exported as `PluginLocale`. Import with `import type`; the SDK has no runtime exports.
+
+One language's plugin text: the package's `locales/<language>.json`, a flat
+key → string map with `{name}` placeholders. The keys `manifest.name` and
+`manifest.description` replace those manifest fields in host UI.
+
+```ts
+export type PluginLocale = Readonly<Record<string, string>>;
+```
+
+## PluginLocales
+
+Public SDK type, exported as `PluginLocales`. Import with `import type`; the SDK has no runtime exports.
+
+A package's dictionaries by app language id (`en`, `es`, …).
+
+```ts
+export type PluginLocales = Readonly<Record<string, PluginLocale>>;
+```
+
+**Related types:** [PluginLocale](plugins.md#pluginlocale).
 
 ## PluginManifest
 
@@ -2020,6 +2164,14 @@ create(context: PluginToolContext): AgentTool<any>[];
 | `context` | `PluginToolContext` |
 
 **Returns:** `AgentTool<any>[]`.
+
+## PluginTranslationVars
+
+Public SDK type, exported as `PluginTranslationVars`. Import with `import type`; the SDK has no runtime exports.
+
+```ts
+export type PluginTranslationVars = Readonly<Record<string, string | number>>;
+```
 
 ## PluginView
 

@@ -7,6 +7,7 @@ import { useNotifyHub } from "@/components/server-events";
 import { PluginFrontendManager, type PluginHost, type PluginMount, type PluginSnapshot } from "@/components/plugin-manager";
 import { createPluginUiStore, PluginUiHost } from "@/components/plugin-ui-host";
 import { BUILTIN_MERMAID_LANGUAGE, reservedToolRendererNames } from "@/components/plugin-renderers";
+import { useLanguage } from "@/components/i18n";
 
 const EMPTY: PluginSnapshot = { plugins: [], codeBlocks: [], toolRenderers: [], directory: "", conflicts: [], loading: true, refreshing: false };
 const emptySubscribe = () => () => {};
@@ -74,12 +75,15 @@ export function PluginsProvider({ children }: { children: ReactNode }) {
 	const router = useRouter();
 	const routerRef = useRef(router);
 	routerRef.current = router;
+	const language = useLanguage();
+	const languageRef = useRef(language);
+	languageRef.current = language;
 	const [manager, setManager] = useState<PluginFrontendManager | null>(null);
 	const [uiStore, setUiStore] = useState<ReturnType<typeof createPluginUiStore> | null>(null);
 	useEffect(() => {
 		if (!window.__lhPluginWindow || window.__lhPluginWindow.disposed) {
 			window.__lhPluginWindow = createPluginWindowOwner({
-				reservedCodeBlockLanguages: [BUILTIN_MERMAID_LANGUAGE], reservedToolNames: reservedToolRendererNames(),
+				reservedCodeBlockLanguages: [BUILTIN_MERMAID_LANGUAGE], reservedToolNames: reservedToolRendererNames(), language: languageRef.current,
 				fetch: (...args) => fetch(...args), importModule: importPluginModule,
 				pathname: () => window.location.pathname, navigate: path => routerRef.current.push(path),
 				openSettings: pluginId => window.dispatchEvent(new CustomEvent("lh:open-plugin-settings", { detail: pluginId })),
@@ -96,6 +100,7 @@ export function PluginsProvider({ children }: { children: ReactNode }) {
 		setUiStore(owner.uiStore);
 		return owner.acquire();
 	}, []);
+	useEffect(() => { manager?.setLanguage(language); }, [manager, language]);
 	useEffect(() => {
 		if (!manager) return;
 		const offs = SERVER_EVENT_TYPES.map(type => hub.subscribe(type, payload => {

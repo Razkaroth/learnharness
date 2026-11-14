@@ -29,7 +29,8 @@ export function registerPluginWorkerActivity(deps: {
 	/** The owning runtime's profile (plugin-runtimes.ts). */
 	profile?: string;
 	pluginId: string;
-	pluginName: string;
+	/** Read per update, so titles follow the app language. */
+	pluginName: string | (() => string);
 	signal: AbortSignal;
 	cancel(taskId: string): void;
 }): (metadata: PluginWorkerActivityMetadata) => void {
@@ -56,7 +57,7 @@ export function registerPluginWorkerActivity(deps: {
 		const row: PluginWorkerActivity = {
 			...structuredClone(metadata), status: metadata.status, id: `${deps.pluginId}:${metadata.id}`,
 			taskId: metadata.id, pluginId: deps.pluginId,
-			title: `${deps.pluginName} · ${metadata.definitionId}`,
+			title: `${typeof deps.pluginName === "function" ? deps.pluginName() : deps.pluginName} · ${metadata.definitionId}`,
 		};
 		activation.rows.set(metadata.id, row);
 		emit("activity-changed", {});

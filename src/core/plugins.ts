@@ -39,11 +39,34 @@ export interface PluginManifest {
 	backend?: string;
 	styles?: string;
 }
+/** One language's plugin text: the package's `locales/<language>.json`, a flat
+ * key → string map with `{name}` placeholders. The keys `manifest.name` and
+ * `manifest.description` replace those manifest fields in host UI. */
+export type PluginLocale = Readonly<Record<string, string>>;
+/** A package's dictionaries by app language id (`en`, `es`, …). */
+export type PluginLocales = Readonly<Record<string, PluginLocale>>;
+export type PluginTranslationVars = Readonly<Record<string, string | number>>;
+/** Frontend text lookup. A language change re-activates the frontend, so read
+ * `language` and call `t` during activation and mounts. Missing keys fall back
+ * to `en`, then to the key itself. */
+export interface PluginFrontendI18n {
+	readonly language: string;
+	t(key: string, vars?: PluginTranslationVars): string;
+}
+/** Backend text lookup. `language()` reads the profile's current app language
+ * at call time; `t` uses it unless a language is passed. Missing keys fall back
+ * to `en`, then to the key itself. */
+export interface PluginBackendI18n {
+	language(): string;
+	t(key: string, vars?: PluginTranslationVars, language?: string): string;
+}
 export interface PluginInfo {
 	id: string;
 	/** Host-owned package provenance; never read from a plugin manifest. */
 	origin: "core" | "community";
 	manifest?: PluginManifest;
+	/** Host-loaded package dictionaries; absent when the package ships none. */
+	locales?: PluginLocales;
 	enabled: boolean;
 	status: "disabled" | "active" | "error";
 	error?: string;
@@ -145,6 +168,8 @@ export interface PluginBackendContext {
 	/** Register resource cleanup for deactivation, also supported as activate's
 	 * return value. A cleanup registered after expiry is still invoked. */
 	cleanup(dispose: PluginCleanup): void;
+	/** This package's `locales/*.json` text in the profile's app language. */
+	readonly i18n: PluginBackendI18n;
 	/** Read-only native learning records; not a programmable core-data write API. */
 	learning: PluginLearningData;
 	/** Host-authenticated raw model requests, scoped to activation; can incur cost. */
@@ -281,6 +306,8 @@ export interface PluginFrontendContext {
 	/** Register sync/async resource cleanup for deactivation; late registrations
 	 * are still invoked. An activation may also return a cleanup function. */
 	cleanup(dispose: PluginCleanup): void;
+	/** This package's `locales/*.json` text in the window's app language. */
+	readonly i18n: PluginFrontendI18n;
 	/** Register a plugin-owned body view with host chrome. Invalid/duplicate IDs
 	 * throw; returned unregister removes the view without deleting plugin data. */
 	registerView(view: PluginView): () => void;
@@ -373,6 +400,38 @@ export interface PluginFrontendModule {
 }
 
 /** No loosely coercing malformed manifests or executing incompatible packages. */
+/** Locale files: `locales/<language>.json`, at most this many bytes each. */
+export const PLUGIN_LOCALE_FILE = /^locales\/([a-z]{2,3}(?:-[A-Za-z0-9]{2,8})*)\.json$/;
+export const PLUGIN_LOCALE_MAX_BYTES = 256 * 1024;
+export function parsePluginLocale(value: unknown, file: string): PluginLocale {
+	if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error(`Invalid plugin locale ${file}: expected a JSON object`);
+	const locale: Record<string, string> = {};
+	for (const [key, text] of Object.entries(value)) {
+		if (!key.trim() || typeof text !== "string") throw new Error(`Invalid plugin locale ${file}: every key needs a string value`);
+		locale[key] = text;
+	}
+	return Object.freeze(locale);
+}
+function localeText(locales: PluginLocales | undefined, language: string, key: string): string | undefined {
+	for (const id of [language, "en"]) {
+		const locale = locales && Object.hasOwn(locales, id) ? locales[id] : undefined;
+		if (locale && Object.hasOwn(locale, key)) return locale[key];
+	}
+	return undefined;
+}
+/** `key` in `language`, else `en`, else the key itself; `{name}` placeholders filled from `vars`. */
+export function pluginTranslate(locales: PluginLocales | undefined, language: string, key: string, vars?: PluginTranslationVars): string {
+	const text = localeText(locales, language, key) ?? key;
+	if (!vars) return text;
+	return text.replace(/\{(\w+)\}/g, (match, name: string) => (Object.hasOwn(vars, name) ? String(vars[name]) : match));
+}
+/** The manifest as host UI shows it: `manifest.name`/`manifest.description` locale keys win. */
+export function localizedPluginManifest(manifest: PluginManifest, locales: PluginLocales | undefined, language: string): PluginManifest {
+	const name = localeText(locales, language, "manifest.name");
+	const description = localeText(locales, language, "manifest.description");
+	if (name === undefined && description === undefined) return manifest;
+	return { ...manifest, ...(name?.trim() ? { name } : {}), ...(description !== undefined ? { description } : {}) };
+}
 export function parsePluginManifest(value: unknown, folder: string, appVersion: string): PluginManifest {
 	if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("manifest.json must be an object");
 	const m = value as Record<string, unknown>;

@@ -5,6 +5,7 @@ import type {
 } from "@/src/core";
 
 import { preparePluginShortcut, copyPluginSubmissionTarget, preparePluginSubmissionInterceptor, type PluginSubmissionInterceptor, type PluginSubmissionTarget } from "../src/core/index.ts";
+import { localizedPluginManifest, pluginTranslate } from "../src/core/plugins.ts";
 import { orderSubmissionInterceptors, type SubmissionInterceptorRegistration } from "./plugin-submission-runner.ts";
 
 export type PluginMount = (container: HTMLElement, signal: AbortSignal) => ReturnType<PluginView["mount"]>;
@@ -43,6 +44,8 @@ export interface PluginSnapshot {
 interface Lifecycle {
 	id: string;
 	revision: string;
+	/** The app language this activation's `ctx.i18n` was built for. */
+	language: string;
 	controller: AbortController;
 	cleanups: Set<PluginCleanup>;
 	/** Activation and every cooperative mount/cleanup must settle before reuse. */
@@ -77,6 +80,8 @@ export interface PluginHost {
 	openSettings?(pluginId: string): void;
 	createUi?(options: { signal: AbortSignal; pluginId?: string; onError: (error: unknown) => void }): import("@/src/core/plugin-ui").PluginUi;
 	style?(url: string, onError: () => void): PluginCleanup;
+	/** App language at construction; `setLanguage` changes it later. */
+	language?: string;
 }
 
 export function pluginViewPath(pluginId: string, viewId: string): string {
@@ -132,7 +137,28 @@ export class PluginFrontendManager {
 	private started = false;
 	private shortcutPages = new Map<string, { read: () => PluginPageActionContext | undefined }>();
 	private snapshot: PluginSnapshot = { plugins: [], codeBlocks: [], toolRenderers: [], directory: "", conflicts: [], loading: true, refreshing: false };
-	constructor(private host: PluginHost) {}
+	private language: string;
+	private localized = new WeakMap<PluginInfo, PluginInfo>();
+	constructor(private host: PluginHost) { this.language = host.language ?? "en"; }
+	/** Plugin frontends read text during activation, so a language change
+	 * re-activates every live package in the new language. */
+	setLanguage(language: string) {
+		if (this.disposed || language === this.language) return;
+		this.language = language;
+		this.localized = new WeakMap();
+		this.reconcile(this.infos);
+	}
+	/** Snapshot copy with the manifest name/description in the current language. */
+	private display(info: PluginInfo): PluginInfo {
+		if (!info.manifest || !info.locales) return info;
+		let shown = this.localized.get(info);
+		if (!shown) {
+			const manifest = localizedPluginManifest(info.manifest, info.locales, this.language);
+			shown = manifest === info.manifest ? info : { ...info, manifest };
+			this.localized.set(info, shown);
+		}
+		return shown;
+	}
 	getSnapshot = () => this.snapshot;
 	subscribe = (listener: () => void) => {
 		this.listeners.add(listener);
@@ -148,7 +174,7 @@ export class PluginFrontendManager {
 			plugins: this.infos.map(info => {
 			const life = this.lives.get(info.id);
 			return {
-				info, phase: life?.phase ?? (info.enabled ? (info.status === "error" ? "error" : "active") : "disabled"),
+				info: this.display(info), phase: life?.phase ?? (info.enabled ? (info.status === "error" ? "error" : "active") : "disabled"),
 				error: life?.error ?? this.cleanupErrors.get(info.id) ?? info.error, views: [...(life?.views.values() ?? [])],
 				actions: [...(life?.actions.values() ?? [])], shortcuts: [...(life?.shortcuts ?? [])].map(([actionId, shortcut]) => ({ actionId, shortcut })), placements: [...(life?.placements.values() ?? [])],
 				actionBusy: [...(life?.actionBusy ?? [])], settings: life?.settings, busy: this.pending.has(info.id),
@@ -245,12 +271,12 @@ export class PluginFrontendManager {
 		this.infos = infos;
 		for (const life of [...this.lives.values()]) {
 			const info = infos.find(item => item.id === life.id);
-			if (!info?.enabled || info.status !== "active" || !info.manifest?.main || info.revision !== life.revision) this.stop(life);
+			if (!info?.enabled || info.status !== "active" || !info.manifest?.main || info.revision !== life.revision || life.language !== this.language) this.stop(life);
 		}
 		for (const info of infos) {
 			if (!info.enabled || info.status !== "active" || !info.manifest?.main || this.lives.has(info.id)) continue;
 			const life: Lifecycle = {
-				id: info.id, revision: info.revision, controller: new AbortController(), cleanups: new Set(),
+				id: info.id, revision: info.revision, language: this.language, controller: new AbortController(), cleanups: new Set(),
 				activation: Promise.resolve(), tasks: new Set(),
 				views: new Map(), actions: new Map(), shortcuts: new Map(), placements: new Map(), actionBusy: new Set(), codeBlocks: new Map(), toolRenderers: new Map(), questionRenderers: new Map(), problemRenderers: new Map(), submissionInterceptors: new Map(),
 				notifications: new Set(), events: new Set(), resyncs: new Set(), phase: "loading",
@@ -359,6 +385,7 @@ export class PluginFrontendManager {
 		const context: PluginFrontendContext = {
 			manifest, signal: life.controller.signal,
 			cleanup: cleanup => { this.addCleanup(life, cleanup); },
+			i18n: Object.freeze({ language: life.language, t: (key: string, vars?: Readonly<Record<string, string | number>>) => pluginTranslate(info.locales, life.language, key, vars) }),
 			registerView: view => register(life.views, view, "mount"),
 			registerAction: action => register(life.actions, action, "run"),
 			placeAction: placement => {
@@ -388,7 +415,7 @@ export class PluginFrontendManager {
 				const controller = new AbortController();
 				const abort = () => controller.abort();
 				life.controller.signal.addEventListener("abort", abort, { once: true });
-				const registration: SubmissionInterceptorRegistration = Object.freeze({ pluginId: life.id, pluginName: manifest.name, interceptor, signal: controller.signal,
+				const registration: SubmissionInterceptorRegistration = Object.freeze({ pluginId: life.id, pluginName: localizedPluginManifest(manifest, info.locales, life.language).name, interceptor, signal: controller.signal,
 					isCurrent: () => this.current(life) && life.submissionInterceptors.get(interceptor.id) === registration,
 					report: (error: unknown) => this.report(life, error),
 				});
