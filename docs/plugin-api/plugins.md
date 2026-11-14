@@ -534,8 +534,10 @@ emit(topic: string, data?: unknown): void;
 
 Public SDK type, exported as `PluginBackendI18n`. Import with `import type`; the SDK has no runtime exports.
 
-Backend text lookup. `language()` reads the profile's current app language
-at call time; `t` uses it unless a language is passed. Missing keys fall back
+Backend text lookup. A language change re-activates running backends, so
+activation-time registrations are re-made in the new language. `language()`
+reads the profile's current app language at call time; `t` uses it unless a
+language is passed. Missing keys fall back
 to `en`, then to the key itself.
 
 ```ts

@@ -31,13 +31,15 @@ const path = require("node:path");
 const instance = Symbol("module instance");
 let loads = (globalThis.__lhProfileFixtureLoads ?? 0) + 1;
 globalThis.__lhProfileFixtureLoads = loads;
+let activations = 0;
 exports.activate = (ctx) => {
+	activations++;
 	const seen = [];
 	ctx.events.on((event) => { if (event.type === "chats-changed") seen.push(event.type); });
 	ctx.handle("whoami", () => {
 		fs.mkdirSync(ctx.dataDirectory, { recursive: true });
 		fs.writeFileSync(path.join(ctx.dataDirectory, "mark.txt"), "written");
-		return { load: loads, instance: String(instance.description), sessions: ctx.learning.listSessions().map((s) => s.title), dataDirectory: ctx.dataDirectory, seen: seen.length };
+		return { load: loads, instance: String(instance.description), sessions: ctx.learning.listSessions().map((s) => s.title), dataDirectory: ctx.dataDirectory, seen: seen.length, activations, language: ctx.i18n.language() };
 	});
 };
 `;
@@ -53,7 +55,7 @@ function reqAs(sessionId: string): Request {
 	return new Request("http://localhost/api/x", { headers: { cookie: `${users.SESSION_COOKIE}=${sessionId}` } });
 }
 
-type WhoAmI = { load: number; sessions: string[]; dataDirectory: string; seen: number };
+type WhoAmI = { load: number; sessions: string[]; dataDirectory: string; seen: number; activations: number; language: string };
 
 let ada = "", adaSession = "", bea = "";
 
@@ -105,6 +107,19 @@ describe("per-profile plugin runtimes", () => {
 		const beaAfter = await config.runAsUser(bea, async () => (await (await getPluginHost()).call(PLUGIN, "whoami")) as WhoAmI);
 		assert.ok(adaAfter.seen >= 1);
 		assert.equal(beaAfter.seen, before.seen, "Ada's event never reaches Bea's plugin");
+	});
+
+	it("a profile's language change re-activates only that profile's backends", async () => {
+		const whoami = (id: string) => config.runAsUser(id, async () => (await (await getPluginHost()).call(PLUGIN, "whoami")) as WhoAmI);
+		const [adaBefore, beaBefore] = [await whoami(ada), await whoami(bea)];
+		users.updateProfile(reqAs(adaSession), ada, { language: "es" });
+		const [adaAfter, beaAfter] = [await whoami(ada), await whoami(bea)];
+		assert.equal(adaAfter.language, "es");
+		assert.equal(adaAfter.activations, adaBefore.activations + 1, "calls wait for the re-activation");
+		assert.equal(beaAfter.activations, beaBefore.activations);
+		assert.equal(beaAfter.language, "en");
+		users.updateProfile(reqAs(adaSession), ada, { language: "es" });
+		assert.equal((await whoami(ada)).activations, adaAfter.activations, "an unchanged language keeps backends running");
 	});
 
 	it("the transport lists the calling profile's plugin folder", async () => {

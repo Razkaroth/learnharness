@@ -181,9 +181,10 @@ stays the raw manifest.
 
 - Frontend: `ctx.i18n.language` is fixed for the activation. A language change
   re-activates the frontend, so read text during activation and mounts.
-- Backend: `ctx.i18n.language()` reads the profile's language at call time, so look text
-  up when you build a prompt or response, not once at activation. Pass a language as the
-  third argument of `t` to override it.
+- Backend: a language change re-activates the profile's running backends (in-flight work
+  aborts), so registered text such as instructions, question types and tool descriptions
+  can be looked up at activation. `ctx.i18n.language()` reads the profile's language at
+  call time. Pass a language as the third argument of `t` to override it.
 
 Translate agent instructions and model-facing prompts the same way when they should
 follow the learner's language. Keep keys identical across dictionaries.

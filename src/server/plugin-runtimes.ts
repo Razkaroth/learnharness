@@ -13,7 +13,11 @@ export const ROOT_PLUGIN_PROFILE = "root";
 
 export interface PluginRuntimeEntry<H extends { dispose(): Promise<void> } = { dispose(): Promise<void> }> {
 	host: H;
+	/** Callers await this before using the host; a language sync extends it. */
 	ready: Promise<void>;
+	/** Re-activates backends when the profile's language differs from the one
+	 *  they were activated in. */
+	syncLanguage?(): Promise<void>;
 }
 
 interface RuntimeGlobal {
@@ -42,6 +46,18 @@ export function setPluginRuntime(profile: string, entry: PluginRuntimeEntry): vo
 	const g = globals();
 	if (profile === ROOT_PLUGIN_PROFILE) g.__lhPlugins = entry;
 	else (g.__lhProfilePlugins ??= new Map()).set(profile, entry);
+}
+
+/** After a language write: plugin calls wait until the profile's backends
+ *  re-register their text in the new language. No runtime, nothing to do. */
+export function syncPluginLanguage(profile: string): Promise<void> {
+	const entry = pluginRuntime(profile);
+	if (!entry?.syncLanguage) return Promise.resolve();
+	const sync = entry.syncLanguage.bind(entry);
+	entry.ready = entry.ready.then(() => sync().catch((error: unknown) => {
+		console.error(`[plugins] Re-activating the ${profile} plugins after a language change failed:`, error);
+	}));
+	return entry.ready;
 }
 
 /** Forget a profile's runtime and dispose its host: backends deactivate and

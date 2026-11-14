@@ -45,7 +45,7 @@ import {
 import { readSettings, writeSettings } from "../store/settings.ts";
 import { isAppLanguage, type AppLanguage } from "../core/i18n.ts";
 import { resolveSettings } from "../core/settings-resolution.ts";
-import { ROOT_PLUGIN_PROFILE, stopPluginRuntime } from "./plugin-runtimes.ts";
+import { ROOT_PLUGIN_PROFILE, stopPluginRuntime, syncPluginLanguage } from "./plugin-runtimes.ts";
 
 export { registryExists } from "../store/users.ts";
 export { runAsUser, activeUserId } from "../../config.ts";
@@ -178,6 +178,7 @@ function writeLanguage(userId: string, language: AppLanguage): void {
 		const record = readSettings();
 		writeSettings({ ...record, general: { ...record?.general, language } });
 	});
+	void syncPluginLanguage(userId);
 }
 
 /**

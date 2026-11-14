@@ -585,6 +585,25 @@ export function createPluginHost(deps: PluginHostDependencies) {
 			});
 		},
 		refresh: () => enqueue(async () => { assertOpen(); await initializeInternal(); await discover(readState(stateFile)); change(); }),
+		/** Backends register text once, at activation. After a language change,
+		 * re-activate the running ones so that text follows; in-flight work aborts. */
+		relocalize: () => enqueue(async () => {
+			assertOpen();
+			if (!initialized) return;
+			let changed = false;
+			for (const pkg of packages.values()) {
+				if (!pkg.info.enabled || !pkg.activation?.ready || !pkg.info.manifest?.backend) continue;
+				changed = true;
+				const failures = await deactivate(pkg);
+				if (failures.length) {
+					pkg.info.status = "error";
+					pkg.info.error = failures.map(f => `Cleanup: ${f}`).join("; ");
+					continue;
+				}
+				await activate(pkg);
+			}
+			if (changed) change();
+		}),
 		async call(id: string, operation: string, input?: unknown): Promise<unknown> {
 			assertOpen();
 			const pkg = get(id), activation = pkg.activation;

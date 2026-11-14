@@ -41,6 +41,7 @@ import {
 	promptOverrides,
 	readSettingsRecord,
 	refreshWorkerRequestAdmission,
+	syncProfilePluginLanguage,
 	themeStore,
 	validateChatSettings,
 	validateModelsSettings,
@@ -149,6 +150,9 @@ async function handlePUT(request: Request, ctx: { params: Promise<{ section: str
 	// Only a successful durable write changes admission. Increasing the
 	// limit immediately drains queued requests; decreasing never cancels active work.
 	refreshWorkerRequestAdmission();
+	// Answer after plugin backends re-register their text, so the client's
+	// language switch re-activates frontends against ready backends.
+	if (section === "general") await syncProfilePluginLanguage();
 	const fileAccessError = fileAccessConfigurationError();
 	return Response.json({ settings: stored, ...(fileAccessError ? { fileAccessError } : {}) });
 }

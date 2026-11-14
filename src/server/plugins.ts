@@ -18,7 +18,7 @@ import { deliverJobResult, setPluginJobRecovery } from "./jobs.ts";
 import { createPluginHost } from "./plugin-host.ts";
 import { createPluginTransport } from "./plugin-transport.ts";
 import { createPluginDocumentConverter } from "./plugin-documents.ts";
-import { ROOT_PLUGIN_PROFILE, inPluginProfile, pluginProfile, pluginRuntime, setPluginRuntime, type PluginRuntimeEntry } from "./plugin-runtimes.ts";
+import { ROOT_PLUGIN_PROFILE, inPluginProfile, pluginProfile, pluginRuntime, setPluginRuntime, syncPluginLanguage, type PluginRuntimeEntry } from "./plugin-runtimes.ts";
 import type { AgentBuildOptions } from "../agent/teacher-agent.ts";
 import { effectiveSettings, stores } from "./stores.ts";
 import { localizedPluginManifest } from "../core/plugins.ts";
@@ -117,7 +117,13 @@ function runtime(profile = pluginProfile()): Runtime {
 			}
 			await host.initialize();
 		}));
-		const entry: Runtime = { host, ready };
+		let activeLanguage = language();
+		const entry: Runtime = { host, ready, async syncLanguage() {
+			const next = language();
+			if (next === activeLanguage) return;
+			activeLanguage = next;
+			await host.relocalize();
+		} };
 		setPluginRuntime(profile, entry);
 		return entry;
 	});
@@ -144,9 +150,9 @@ export async function initializePlugins(): Promise<void> {
 	await runtime(ROOT_PLUGIN_PROFILE).ready;
 }
 export async function getPluginHost(): Promise<Host> {
-	const { host, ready } = runtime();
-	await ready;
-	return host;
+	const entry = runtime();
+	await entry.ready;
+	return entry.host;
 }
 /** Await startup once; actual factories run synchronously during per-turn Agent construction. */
 export async function getPluginAgentContributions(): Promise<NonNullable<AgentBuildOptions["pluginContributions"]>> {
@@ -155,5 +161,9 @@ export async function getPluginAgentContributions(): Promise<NonNullable<AgentBu
 /** Await startup before reading canonical truth; the returned resolver itself is synchronous. */
 export async function getPluginQuestionTypeResolver(): Promise<Host["resolveQuestionType"]> {
 	return (await getPluginHost()).resolveQuestionType;
+}
+/** Re-activate the calling profile's plugin backends if its language changed. */
+export function syncProfilePluginLanguage(): Promise<void> {
+	return syncPluginLanguage(pluginProfile());
 }
 export const pluginTransport = createPluginTransport({ getHost: getPluginHost, get directory() { return pluginDirectory(); } });

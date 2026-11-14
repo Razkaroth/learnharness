@@ -84,6 +84,23 @@ test("the host loads package dictionaries and backend ctx.i18n follows the curre
 	assert.deepEqual(await f.host.call("cards", "say", "es"), ["en", "2 cards due", "2 tarjetas pendientes"]);
 });
 
+test("relocalize re-activates running backends so activation-time text follows the language", async t => {
+	let language = "es";
+	const f = hostFixture(t, () => language);
+	f.plugin("cards", {
+		"locales/en.json": JSON.stringify(locales.en), "locales/es.json": JSON.stringify(locales.es),
+		"backend.cjs": "let n = 0; exports.activate = ctx => { n++; ctx.handle('n', () => n); ctx.registerInstructions({ agents: ['teacher'], text: ctx.i18n.t('due', { count: 1 }) }); };",
+	});
+	await f.host.initialize();
+	await f.host.setEnabled("cards", true);
+	const instructions = () => f.host.agentContributions({ chatId: "c1", agent: "teacher" }, []).instructions;
+	assert.deepEqual(instructions(), ["1 tarjetas pendientes"]);
+	language = "en";
+	await f.host.relocalize();
+	assert.deepEqual(instructions(), ["1 cards due"]);
+	assert.equal(await f.host.call("cards", "n"), 2);
+});
+
 test("malformed or misplaced locale files make the package an error", async t => {
 	const f = hostFixture(t, () => "en");
 	f.plugin("bad-json", { "locales/en.json": "{nope" });

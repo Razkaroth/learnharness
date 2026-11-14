@@ -53,8 +53,10 @@ export interface PluginFrontendI18n {
 	readonly language: string;
 	t(key: string, vars?: PluginTranslationVars): string;
 }
-/** Backend text lookup. `language()` reads the profile's current app language
- * at call time; `t` uses it unless a language is passed. Missing keys fall back
+/** Backend text lookup. A language change re-activates running backends, so
+ * activation-time registrations are re-made in the new language. `language()`
+ * reads the profile's current app language at call time; `t` uses it unless a
+ * language is passed. Missing keys fall back
  * to `en`, then to the key itself. */
 export interface PluginBackendI18n {
 	language(): string;

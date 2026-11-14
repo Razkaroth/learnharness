@@ -81,8 +81,9 @@ The included no-build examples can be copied directly; they do not need npm setu
   catalog-selected packages; it never installs into learner data.
 - Put user-facing and model-facing text in `dist/locales/<language>.json` and read it via
   `ctx.i18n.t(key, vars)` (falls back to `en`, then the key). `manifest.name`/`manifest.description`
-  keys localize host chrome. Frontends re-activate on language change; backends call
-  `ctx.i18n.language()` at use time. Keep keys identical across languages.
+  keys localize host chrome. A language change re-activates frontends and the profile's
+  backends, so activation-time registrations pick up the new language. Keep keys identical
+  across languages.
 - Refresh discovers packages/first builds; admitted code changes need server restart.
   No hot reload, separate development registration or root-manifest fallback exists.
 - Backend activation is per learner profile; frontend activation per window; view/editor mounts
