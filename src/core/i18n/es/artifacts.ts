@@ -148,8 +148,6 @@ export const artifacts: Record<keyof typeof en, string> = {
 	"artifacts.chains.doneAria.one": "Selección lista — {n} proposición seleccionada",
 	"artifacts.chains.doneAria.other": "Selección lista — {n} proposiciones seleccionadas",
 	"artifacts.chains.delete": "Eliminar",
-	"artifacts.chains.deleteAria.one": "Eliminar {n} nodo seleccionado",
-	"artifacts.chains.deleteAria.other": "Eliminar {n} nodos seleccionados",
 
 	"artifacts.md.copyDiagram": "Copiar código del diagrama",
 	"artifacts.md.openFullScreen": "Abrir en pantalla completa",
@@ -195,4 +193,18 @@ export const artifacts: Record<keyof typeof en, string> = {
 
 	// Practice: custom plugin input
 	"artifacts.practice.submitShort": "Enviar",
+
+	// Images (show_image, submitted images)
+	"artifacts.image.undisplayable": "Se mostró una imagen, pero no se pudo visualizar.",
+	"artifacts.image.snapshotFailed": "No se pudo cargar la instantánea de la imagen.",
+	"artifacts.image.loading": "Cargando imagen…",
+	"artifacts.image.label": "Imagen",
+	"artifacts.image.download": "Descargar imagen",
+	"artifacts.image.openLabel": "Abrir imagen a pantalla completa",
+	"artifacts.image.unavailable": "Imagen no disponible",
+	"artifacts.image.submitted": "Imagen enviada",
+	"artifacts.image.openSubmitted": "Abrir imagen enviada a pantalla completa",
+
+	// Background job delivery failure
+	"artifacts.steer.deliveryFailed": "Falló la recuperación o entrega del trabajo en segundo plano",
 };

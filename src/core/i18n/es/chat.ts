@@ -87,4 +87,35 @@ export const chat: Record<keyof typeof en, string> = {
 	"chat.side.dictation.title": "Dictar la pregunta al margen",
 	"chat.side.stopAnswer": "Detener la respuesta al margen",
 	"chat.side.send": "Enviar la pregunta al margen",
+
+	// Plugin submission preparation
+	"chat.submission.pluginFailed": "No se pudo preparar el envío ({plugin}): {error}. Se conservó lo que escribiste.",
+	"chat.submission.failed": "{error}. Se conservó lo que escribiste.",
+	"chat.submission.thinkingRequired": "Se necesita texto o imágenes de razonamiento",
+	"chat.submission.messageRequired": "Se necesita texto o imágenes en el mensaje",
+
+	"chat.side.openConversation": "Abrir conversación lateral",
+	"chat.side.askQuestion": "Hacer una pregunta lateral",
+	"chat.sync.failed": "No se pudo sincronizar la sesión guardada.",
+	"chat.sync.retry": "Reintentar sincronización",
+
+	// Citations (quote tutor text into your input)
+	"chat.cite.label": "Citar",
+	"chat.cite.aria": "Citar la selección en tu respuesta",
+	"chat.cite.tooLong": "Acorta la selección",
+	"chat.cite.goToSource": "Ir a la fuente",
+	"chat.cite.viewCited": "Ver texto citado del tutor: {label}",
+	"chat.cite.quoted": "Texto citado del tutor: {label}",
+	"chat.cite.editComment": "Editar comentario de la cita",
+	"chat.cite.addComment": "Añadir comentario a la cita",
+	"chat.cite.commentAria": "Comentario sobre el texto seleccionado",
+	"chat.cite.commentKeys": "Intro guarda el comentario de la cita; Comando/Ctrl+Intro guarda y envía; Mayús+Intro inserta una nueva línea.",
+	"chat.cite.commentPlaceholder": "Añade un comentario opcional...",
+	"chat.cite.commentTooLong": "Los comentarios pueden tener hasta {max} caracteres.",
+	"chat.cite.cancel": "Cancelar",
+	"chat.cite.shorten": "Acorta el comentario",
+	"chat.cite.save": "Guardar",
+
+	// Selection toolbar
+	"chat.selection.toolbar": "Acciones de selección",
 };

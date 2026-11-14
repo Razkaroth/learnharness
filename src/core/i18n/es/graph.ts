@@ -3,7 +3,6 @@ import type { graph as en } from "../en/graph.ts";
 export const graph: Record<keyof typeof en, string> = {
 	// Graph view: empty state, node card, context menu, pipeline chips
 	"graph.empty.title": "Grafo de conocimiento",
-	"graph.empty.body": "Inicia una sesión o importa notas para construir tu grafo.",
 	"graph.card.sessions": "Sesiones",
 	"graph.card.noSessions": "No hay sesiones registradas.",
 	"graph.menu.delete": "Eliminar",
@@ -98,7 +97,6 @@ export const graph: Record<keyof typeof en, string> = {
 	"graph.import.requestFailed": "Falló la solicitud de importación (HTTP {status}). Revisa el grafo antes de volver a intentarlo.",
 	"graph.import.requestFailedDetail":
 		"Falló la solicitud de importación (HTTP {status}): {detail} Revisa el grafo antes de volver a intentarlo.",
-	"graph.import.unsupported": "Formato no compatible o ruta relativa no segura.",
 	"graph.import.tooBig": "Demasiado grande. Máximo 25 MB.",
 	"graph.import.menu": "Extraer archivos al grafo",
 	"graph.import.files": "Archivos",

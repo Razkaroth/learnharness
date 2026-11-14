@@ -22,6 +22,8 @@ export interface ResolvedPluginShortcut extends PluginShortcutCandidate {
 	source: "user" | "default";
 	status: "active" | "unbound" | "conflict" | "invalid";
 	reason?: string;
+	/** What a `conflict` collides with, for localized display of `reason`. */
+	conflict?: { kind: "core"; label: string } | { kind: "plugin"; pluginName: string; name: string };
 }
 export function pluginShortcutId(pluginId: string, actionId: string): PluginShortcutCandidate["id"] { return `plugin:${pluginId}:${actionId}`; }
 
@@ -71,13 +73,13 @@ export function resolvePluginShortcuts(candidates: readonly PluginShortcutCandid
 		const base = { ...candidate, binding: typeof binding === "string" ? binding : "", source: user ? "user" as const : "default" as const };
 		if (binding === "") return { ...base, status: "unbound" };
 		if (!isPluginShortcutBinding(binding)) return { ...base, status: "invalid", reason: "Not an allowed plugin action shortcut" };
-		if (core.has(binding)) return { ...base, status: "conflict", reason: `Conflicts with core shortcut: ${core.get(binding)}` };
+		if (core.has(binding)) return { ...base, status: "conflict", reason: `Conflicts with core shortcut: ${core.get(binding)}`, conflict: { kind: "core", label: core.get(binding)! } };
 		return { ...base, status: "active" };
 	});
 	for (const row of rows) {
 		if (!row.binding || !isPluginShortcutBinding(row.binding) || core.has(row.binding)) continue;
 		const other = rows.find(other => other !== row && other.binding === row.binding && pluginShortcutScopesOverlap(row, other) && (row.source === "default" || other.source === "user"));
-		if (other) { row.status = "conflict"; row.reason = `Conflicts with ${other.pluginName} · ${other.name}`; }
+		if (other) { row.status = "conflict"; row.reason = `Conflicts with ${other.pluginName} · ${other.name}`; row.conflict = { kind: "plugin", pluginName: other.pluginName, name: other.name }; }
 	}
 	return rows;
 }

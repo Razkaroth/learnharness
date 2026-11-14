@@ -6,6 +6,12 @@ import { usePlugins } from "./plugins";
 import type { FrontendPlugin, PluginFrontendManager } from "./plugin-manager";
 import type { InteractionLayersController } from "./interaction-layers";
 import { findCurrentSurfaceBoundary } from "./plugin-surface-targets";
+import { translate } from "@/src/core/i18n";
+import type { KeyActionDef } from "@/src/core/keyboard";
+import type { ResolvedPluginShortcut } from "@/src/core/plugin-shortcuts";
+import type { Translate } from "./i18n";
+
+const ENGLISH: Translate = (key, vars) => translate("en", key, vars);
 
 export function pluginShortcutCandidates(plugins: readonly FrontendPlugin[]): PluginShortcutCandidate[] {
 	return plugins.flatMap(plugin => !plugin.info.enabled || plugin.phase !== "active" ? [] : (plugin.shortcuts ?? []).flatMap(({ actionId, shortcut }) => {
@@ -13,10 +19,10 @@ export function pluginShortcutCandidates(plugins: readonly FrontendPlugin[]): Pl
 		return action ? [{ id: pluginShortcutId(plugin.info.id, actionId), pluginId: plugin.info.id, actionId, pluginName: plugin.info.manifest?.name ?? plugin.info.id, name: action.name, shortcut }] : [];
 	}));
 }
-export function coreShortcutBindings(overrides: KeymapOverrides = loadOverrides()): Map<string, string> {
+export function coreShortcutBindings(overrides: KeymapOverrides = loadOverrides(), label: (action: KeyActionDef) => string = action => action.label): Map<string, string> {
 	return new Map(KEYBOARD_ACTIONS.filter(action => !action.displayOnly).flatMap(action => {
 		const binding = overrides[action.id] ?? action.binding;
-		return binding ? [[binding, action.label] as const] : [];
+		return binding ? [[binding, label(action)] as const] : [];
 	}));
 }
 export function useKeymapRevision() {
@@ -29,20 +35,26 @@ export function useKeymapRevision() {
 	}, []);
 	return revision;
 }
-export function usePluginShortcutRows() {
+export function usePluginShortcutRows(label?: (action: KeyActionDef) => string) {
 	const { snapshot } = usePlugins();
 	useKeymapRevision();
 	const candidates = pluginShortcutCandidates(snapshot.plugins), overrides = loadOverrides();
-	return { candidates, rows: resolvePluginShortcuts(candidates, overrides, coreShortcutBindings(overrides)) };
+	return { candidates, rows: resolvePluginShortcuts(candidates, overrides, coreShortcutBindings(overrides, label)) };
 }
 export function usePluginShortcutPage(pathname: string, read: () => PluginPageActionContext | undefined) {
 	const { manager } = usePlugins();
 	const latest = useRef(read); latest.current = read;
 	useLayoutEffect(() => manager?.registerShortcutPage(pathname, () => latest.current()), [manager, pathname]);
 }
-export function pluginShortcutScopeLabel(candidate: PluginShortcutCandidate): string {
+export function pluginShortcutScopeLabel(candidate: PluginShortcutCandidate, t: Translate = ENGLISH): string {
 	const scope = candidate.shortcut.scope;
-	return scope === "app" ? "App-wide" : [...(scope.sessions ?? []).map(kind => kind === "teaching" ? "Teaching" : "Practice"), ...(scope.views?.length ? [`Views: ${scope.views.join(", ")}`] : [])].join(" · ");
+	return scope === "app" ? t("plugins.shortcut.scope.app") : [...(scope.sessions ?? []).map(kind => t(kind === "teaching" ? "plugins.shortcut.scope.teaching" : "plugins.shortcut.scope.practice")), ...(scope.views?.length ? [t("plugins.shortcut.scope.views", { views: scope.views.join(", ") })] : [])].join(" · ");
+}
+export function pluginShortcutReason(row: ResolvedPluginShortcut, t: Translate = ENGLISH): string | undefined {
+	if (row.conflict?.kind === "core") return t("plugins.shortcut.conflictCore", { label: row.conflict.label });
+	if (row.conflict?.kind === "plugin") return t("plugins.shortcut.conflictPlugin", { plugin: row.conflict.pluginName, name: row.conflict.name });
+	if (row.status === "invalid") return t("plugins.shortcut.invalid");
+	return row.reason;
 }
 
 /** Window-bubble fallback only; never an independent low-level plugin listener. */

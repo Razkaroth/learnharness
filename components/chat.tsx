@@ -321,7 +321,11 @@ export function Chat({
 	const { manager: pluginManager } = usePlugins();
 	const [, submissionChanged] = useState(0);
 	const [preparationError, setPreparationError] = useState<string>();
-	const [submissionRunner] = useState(() => new PluginSubmissionRunner(() => submissionChanged(n => n + 1)));
+	const submissionT = useRef(t);
+	submissionT.current = t;
+	const [submissionRunner] = useState(() => new PluginSubmissionRunner(() => submissionChanged(n => n + 1), (error, plugin) => plugin !== undefined
+		? submissionT.current("chat.submission.pluginFailed", { plugin, error })
+		: submissionT.current("chat.submission.failed", { error })));
 	const [submissionModel] = useState(() => new SubmissionModelEpoch());
 	const submissionMounted = useRef(true);
 	useEffect(() => { submissionMounted.current = true; return () => { submissionMounted.current = false; submissionRunner.dispose(); }; }, [submissionRunner]);
@@ -759,7 +763,7 @@ export function Chat({
 		let captured = "";
 		void runSubmission(target, () => ({ type: "thinking", content: { text: captured = capture(), images: [] } }), () => !busyRef.current && JSON.stringify(activeProblemOccurrenceOf(submissionLive.current.nativeMessages)) === JSON.stringify(target.problem.occurrence), async (prepared, attempt) => {
 			if (prepared.type !== "thinking") return false;
-			if (!prepared.content.text.trim() && !prepared.content.images.length) throw new Error("Thinking text or images are required. Your input has been kept.");
+			if (!prepared.content.text.trim() && !prepared.content.images.length) throw new Error(t("chat.submission.thinkingRequired"));
 			attempt.deliver();
 			return send({ type: "thinking", problemCallId: target.problem.occurrence.toolCallId, occurrence: target.problem.occurrence, text: prepared.content.text, ...(prepared.content.images.length ? { images: prepared.content.images.map(image => ({ ...image })) } : {}) }, () => { clear(captured); attempt.accepted(); }, undefined, attempt.refused);
 		});
@@ -817,7 +821,7 @@ export function Chat({
 		let captured = "", capturedRevision = 0;
 		return runSubmission(target, () => { capturedRevision = composerEditRevision.current; return { type: "text", content: { text: captured = supplied ?? textRef.current.trim(), images: [] } }; }, () => submissionLive.current.ready && !pendingQuestionOf(submissionLive.current.nativeMessages) && !pendingPluginQuestionOf(submissionLive.current.nativeMessages) && !activeProblemOf(submissionLive.current.nativeMessages), async (prepared, attempt) => {
 			if (prepared.type !== "text") return false;
-			if (!prepared.content.text.trim() && !prepared.content.images.length) throw new Error("Message text or images are required. Your input has been kept.");
+			if (!prepared.content.text.trim() && !prepared.content.images.length) throw new Error(t("chat.submission.messageRequired"));
 			if (beforePost && !beforePost(captured)) { attempt.cancel(); return false; }
 			draftRef.current = captured;
 			const accepted = () => { if (composerEditRevision.current === capturedRevision && textRef.current.trim() === captured) applyText(""); openingAccepted?.(); attempt.accepted(); };
@@ -989,8 +993,8 @@ export function Chat({
 		return () => document.removeEventListener("focusin", remember);
 	}, [cycleChatFields]);
 	const citeAction = useMemo(
-		() => createCiteAction({ chatId, composer: citeInput, openEditor: setCitationEdit }),
-		[chatId, citeInput],
+		() => createCiteAction({ chatId, composer: citeInput, openEditor: setCitationEdit, t }),
+		[chatId, citeInput, t],
 	);
 	// One durable companion per explanation/check, in teaching AND practice.
 	// Main requests append new raw exchanges from every thread; closing only hides the UI.
@@ -1037,8 +1041,8 @@ export function Chat({
 		const hasHistory = sideThread.threads.some((thread) => thread.anchor.messageId === sourceMessageId && thread.messages.length > 0);
 		return <div className="mt-1 flex justify-end">
 			<Button type="button" variant="ghost" size="icon-xs" data-testid="side-conversation-button" data-side-segment-id={sourceMessageId}
-				data-has-history={hasHistory} aria-label={hasHistory ? "Open side conversation" : "Ask a side question"}
-				title={hasHistory ? "Open side conversation" : "Ask a side question"}
+				data-has-history={hasHistory} aria-label={t(hasHistory ? "chat.side.openConversation" : "chat.side.askQuestion")}
+				title={t(hasHistory ? "chat.side.openConversation" : "chat.side.askQuestion")}
 				className={hasHistory ? "border border-border/60 text-muted-foreground" : "text-muted-foreground/40 hover:text-muted-foreground"}
 				onClick={(event) => openSideThread({ sourceMessageId, anchor: { kind: "element", element: event.currentTarget } })}>
 				<MessageCircleQuestionIcon aria-hidden className="size-3.5" fill="currentColor" fillOpacity={hasHistory ? 0.12 : 0} />
@@ -2912,7 +2916,7 @@ export function DockOverlay({
 					<div ref={viewportRef} data-dock-viewport="" className="pointer-events-auto">
 					<div ref={bodyRef}>
 					{setupCta}
-					{reconciliation === "failed" && <div role="alert" className="mb-2 rounded-2xl border bg-card px-4 py-3 text-sm">Could not sync the saved session. <Button type="button" variant="ghost" onClick={onRetrySync}>Retry syncing</Button></div>}
+					{reconciliation === "failed" && <div role="alert" className="mb-2 rounded-2xl border bg-card px-4 py-3 text-sm">{t("chat.sync.failed")} <Button type="button" variant="ghost" onClick={onRetrySync}>{t("chat.sync.retry")}</Button></div>}
 					{/* The queued-steer indicator (owner spec 2026-10-03): quiet
 					    one-liners above the shell - right-aligned to where its corner
 					    rounding starts, truncated, no background, no container. A
@@ -2965,8 +2969,8 @@ export function DockOverlay({
 								<PluginQuestionDock viewReader={customViewReader} snapshot={pluginQuestion} chatId={chatId} draft={pluginDraft} expanded={expanded} reveal={revealPending} onExpand={expandAndReveal} ready={pluginReady} available={pluginAvailable} reconciliation={reconciliation} readingRef={readingInputRef} onMicAvailable={onPluginMicAvailable} send={onPluginSend} dismiss={onPluginDismiss} prepareSubmission={onPreparePluginQuestion} />
 							) : unreadablePlugin ? (
 								<div className="px-4 py-3">
-									{reconciliation === "syncing" && <p role="status" className="text-sm text-muted-foreground">Preparing question…</p>}
-									{reconciliation === "ready" && <><p role="status" className="text-sm text-muted-foreground">Question unavailable</p><Button type="button" variant="ghost" disabled={!pluginReady} onClick={() => { void finishDictation().then(onPluginDismiss); }}>Dismiss question</Button></>}
+									{reconciliation === "syncing" && <p role="status" className="text-sm text-muted-foreground">{t("plugins.question.preparing")}</p>}
+									{reconciliation === "ready" && <><p role="status" className="text-sm text-muted-foreground">{t("plugins.question.unavailable")}</p><Button type="button" variant="ghost" disabled={!pluginReady} onClick={() => { void finishDictation().then(onPluginDismiss); }}>{t("plugins.question.dismiss")}</Button></>}
 								</div>
 							) : pending ? (
 								<QuestionDock

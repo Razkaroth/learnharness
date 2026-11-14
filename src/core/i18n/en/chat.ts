@@ -86,4 +86,35 @@ export const chat = {
 	"chat.side.dictation.title": "Dictate side question",
 	"chat.side.stopAnswer": "Stop side answer",
 	"chat.side.send": "Send side question",
+
+	// Plugin submission preparation
+	"chat.submission.pluginFailed": "Could not prepare submission ({plugin}): {error}. Your input has been kept.",
+	"chat.submission.failed": "{error}. Your input has been kept.",
+	"chat.submission.thinkingRequired": "Thinking text or images are required",
+	"chat.submission.messageRequired": "Message text or images are required",
+
+	"chat.side.openConversation": "Open side conversation",
+	"chat.side.askQuestion": "Ask a side question",
+	"chat.sync.failed": "Could not sync the saved session.",
+	"chat.sync.retry": "Retry syncing",
+
+	// Citations (quote tutor text into your input)
+	"chat.cite.label": "Cite",
+	"chat.cite.aria": "Cite selection in your input",
+	"chat.cite.tooLong": "Shorten selection",
+	"chat.cite.goToSource": "Go to source",
+	"chat.cite.viewCited": "View cited tutor text: {label}",
+	"chat.cite.quoted": "Quoted tutor text: {label}",
+	"chat.cite.editComment": "Edit citation comment",
+	"chat.cite.addComment": "Add comment to citation",
+	"chat.cite.commentAria": "Comment on selected text",
+	"chat.cite.commentKeys": "Enter to save the citation comment; Command/Ctrl+Enter to save and send; Shift+Enter for a new line.",
+	"chat.cite.commentPlaceholder": "Add an optional comment...",
+	"chat.cite.commentTooLong": "Comments can contain up to {max} characters.",
+	"chat.cite.cancel": "Cancel",
+	"chat.cite.shorten": "Shorten comment",
+	"chat.cite.save": "Save",
+
+	// Selection toolbar
+	"chat.selection.toolbar": "Selection actions",
 } as const;

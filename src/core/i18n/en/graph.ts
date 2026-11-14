@@ -2,7 +2,6 @@
 export const graph = {
 	// Graph view: empty state, node card, context menu, pipeline chips
 	"graph.empty.title": "Knowledge graph",
-	"graph.empty.body": "Start a session or import notes to build your graph.",
 	"graph.card.sessions": "Sessions",
 	"graph.card.noSessions": "No sessions recorded.",
 	"graph.menu.delete": "Delete",
@@ -96,7 +95,6 @@ export const graph = {
 	"graph.import.invalidResponse": "Invalid import response. Check the graph before retrying.",
 	"graph.import.requestFailed": "Import request failed (HTTP {status}). Check the graph before retrying.",
 	"graph.import.requestFailedDetail": "Import request failed (HTTP {status}): {detail} Check the graph before retrying.",
-	"graph.import.unsupported": "Unsupported format or unsafe relative path.",
 	"graph.import.tooBig": "Too big. Max 25 MB.",
 	"graph.import.menu": "Extract files into the graph",
 	"graph.import.files": "Files",

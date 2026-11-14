@@ -108,19 +108,19 @@ export function composeFontFamily(
 }
 
 /** The Colors grid's labels and the one hint that explains a key. */
-const COLOR_LABELS: Record<ThemeColorKey, { label: string; note?: string }> = {
-	background: { label: "Background" },
-	accent: { label: "Accent", note: "Focus rings, toggles, selection" },
-	surface: { label: "Surface", note: "Cards, inputs, sidebar" },
-	bold: { label: "Bold" },
-	border: { label: "Border" },
-	italic: { label: "Italic" },
-	text: { label: "Text" },
-	code: { label: "Inline code" },
-	textMuted: { label: "Muted text" },
-	error: { label: "Error" },
-	success: { label: "Success" },
-	warning: { label: "Warning" },
+const COLOR_LABELS: Record<ThemeColorKey, { label: TranslationKey; note?: TranslationKey }> = {
+	background: { label: "settings.appearance.color.background" },
+	accent: { label: "settings.appearance.color.accent", note: "settings.appearance.color.accent.note" },
+	surface: { label: "settings.appearance.color.surface", note: "settings.appearance.color.surface.note" },
+	bold: { label: "settings.appearance.color.bold" },
+	border: { label: "settings.appearance.color.border" },
+	italic: { label: "settings.appearance.color.italic" },
+	text: { label: "settings.appearance.color.text" },
+	code: { label: "settings.appearance.color.code" },
+	textMuted: { label: "settings.appearance.color.textMuted" },
+	error: { label: "settings.appearance.color.error" },
+	success: { label: "settings.appearance.color.success" },
+	warning: { label: "settings.appearance.color.warning" },
 };
 
 /** The legacy test ids of the three pre-theme rows (kept stable). */
@@ -178,10 +178,12 @@ function ColorOverrideRow({
 	effective: string;
 	onCommit: (next: string) => boolean | Promise<boolean>;
 }) {
-	const { label, note } = COLOR_LABELS[colorKey];
-	const empty = `Empty = ${themeColor}`;
+	const t = useT();
+	const label = t(COLOR_LABELS[colorKey].label);
+	const note = COLOR_LABELS[colorKey].note;
+	const empty = t("settings.appearance.color.empty", { color: themeColor });
 	return (
-		<SettingsRow label={label} hint={note ? `${note} · ${empty}` : empty} testid={`row-color-${colorKey}`}>
+		<SettingsRow label={label} hint={note ? `${t(note)} · ${empty}` : empty} testid={`row-color-${colorKey}`}>
 			<span className="flex items-center gap-2">
 				<span
 					aria-hidden
@@ -192,7 +194,7 @@ function ColorOverrideRow({
 				<CommitInput
 					value={value}
 					placeholder={themeColor}
-					ariaLabel={`${label.toLowerCase()} hex`}
+					ariaLabel={t("settings.appearance.color.aria", { label: label.toLowerCase() })}
 					testid={LEGACY_TESTIDS[colorKey] ?? `input-color-${colorKey}`}
 					onCommit={onCommit}
 				/>

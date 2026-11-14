@@ -45,7 +45,7 @@ export function SubagentSteerCard({ message }: { message: LhViewMessage }) {
 		// learner aborts and do not invent an outcome for an unreadable task.
 		if (typeof aborted?.data?.failure === "string") return (
 			<div data-testid="job-delivery-failure" role="alert" className="space-y-1 rounded-xl border bg-card p-4 text-sm">
-				<p className="font-medium">Background job recovery/delivery failed</p>
+				<p className="font-medium">{t("artifacts.steer.deliveryFailed")}</p>
 				<p className="whitespace-pre-wrap break-words text-muted-foreground">{aborted.data.failure}</p>
 			</div>
 		);

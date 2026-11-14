@@ -60,7 +60,6 @@ export const nav: Record<keyof typeof en, string> = {
 	"nav.summary.practiceSessions.other": "{n} sesiones de práctica",
 	"nav.summary.importedNotes.one": "{n} nota importada",
 	"nav.summary.importedNotes.other": "{n} notas importadas",
-	"nav.summary.empty": "Aún no hay nada aquí — importa notas para empezar a construir el grafo.",
 
 	"nav.minimal.chains": "Cadenas",
 	"nav.minimal.chains.hint": "Todas las cadenas de razonamiento",

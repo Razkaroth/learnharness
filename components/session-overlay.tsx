@@ -292,7 +292,7 @@ export function MermaidOverlay({
 							{image ? (
 								// Reuse the figure viewport without re-encoding or inverting raster bytes.
 								// eslint-disable-next-line @next/next/no-img-element
-								<img src={image.src} alt="Submitted image" draggable={false} className="block h-auto w-full" />
+								<img src={image.src} alt={t("artifacts.image.submitted")} draggable={false} className="block h-auto w-full" />
 							) : rawSvg !== undefined ? (
 								<div
 									data-lh-overlay-chart

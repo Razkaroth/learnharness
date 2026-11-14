@@ -111,4 +111,11 @@ export const composer: Record<keyof typeof en, string> = {
 	// Dictation: capture ownership
 	"composer.dictation.error.activeElsewhere": "El dictado está activo en otro lugar",
 	"composer.dictation.error.transcriptFailed": "No se pudo aplicar la transcripción del dictado",
+
+	// Attach files button
+	"composer.attach.label": "Adjuntar archivos o una carpeta",
+	"composer.attach.aria": "Adjuntar archivos",
+	"composer.attach.files": "Archivos",
+	"composer.attach.folder": "Carpeta",
+	"composer.attach.folderFailed": "No se pudo elegir una carpeta. Inténtalo de nuevo.",
 };

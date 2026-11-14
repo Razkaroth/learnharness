@@ -147,8 +147,6 @@ export const artifacts = {
 	"artifacts.chains.doneAria.one": "Done picking — {n} proposition selected",
 	"artifacts.chains.doneAria.other": "Done picking — {n} propositions selected",
 	"artifacts.chains.delete": "Delete",
-	"artifacts.chains.deleteAria.one": "Delete {n} selected node",
-	"artifacts.chains.deleteAria.other": "Delete {n} selected nodes",
 
 	"artifacts.md.copyDiagram": "Copy diagram source",
 	"artifacts.md.openFullScreen": "Open full-screen",
@@ -194,4 +192,18 @@ export const artifacts = {
 
 	// Practice: custom plugin input
 	"artifacts.practice.submitShort": "Submit",
+
+	// Images (show_image, submitted images)
+	"artifacts.image.undisplayable": "Image shown, but it could not be displayed.",
+	"artifacts.image.snapshotFailed": "Image snapshot could not be loaded.",
+	"artifacts.image.loading": "Loading image…",
+	"artifacts.image.label": "Image",
+	"artifacts.image.download": "Download image",
+	"artifacts.image.openLabel": "Open image fullscreen",
+	"artifacts.image.unavailable": "Image not available",
+	"artifacts.image.submitted": "Submitted image",
+	"artifacts.image.openSubmitted": "Open submitted image fullscreen",
+
+	// Background job delivery failure
+	"artifacts.steer.deliveryFailed": "Background job recovery/delivery failed",
 } as const;

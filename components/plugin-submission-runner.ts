@@ -14,6 +14,12 @@ export function orderSubmissionInterceptors(a: SubmissionInterceptorRegistration
 	return (b.interceptor.priority ?? 0) - (a.interceptor.priority ?? 0) || (a.pluginId < b.pluginId ? -1 : a.pluginId > b.pluginId ? 1 : 0) || (a.interceptor.id < b.interceptor.id ? -1 : a.interceptor.id > b.interceptor.id ? 1 : 0);
 }
 const aborted = () => new DOMException("Submission preparation canceled", "AbortError");
+/** Learner-facing preparation failure; `plugin` is absent when no interceptor owned it. */
+export type SubmissionFailureText = (error: string, plugin?: string) => string;
+const ENGLISH_FAILURE: SubmissionFailureText = (error, plugin) => plugin !== undefined
+	? `Could not prepare submission (${plugin}): ${error}. Your input has been kept.`
+	: `${error}${error.includes("Your input has been kept.") ? "" : ". Your input has been kept."}`;
+class SubmissionPreparationError extends Error {}
 function abortable<T>(value: T | PromiseLike<T>, signal: AbortSignal): Promise<T> {
 	if (signal.aborted) return Promise.reject(aborted());
 	return new Promise((resolve, reject) => {
@@ -40,14 +46,14 @@ export class SubmissionModelEpoch {
  * HTTP acknowledgment/refusal, deliberately NOT model stream completion. */
 export class PluginSubmissionRunner {
 	private active: SubmissionAttempt | null = null;
-	constructor(private changed: () => void = () => {}) {}
+	constructor(private changed: () => void = () => {}, private failureText: SubmissionFailureText = ENGLISH_FAILURE) {}
 	get preparing() { return this.active?.phase === "preparing"; }
 	get occupied() { return this.active !== null; }
 	begin(target: PluginSubmissionTarget, registrations: readonly SubmissionInterceptorRegistration[], isCurrent: () => boolean): SubmissionAttempt | null {
 		if (this.active) return null;
 		const attempt = new SubmissionAttempt(copyPluginSubmissionTarget(target), [...registrations].sort(orderSubmissionInterceptors), isCurrent, () => {
 			if (this.active === attempt) { this.active = null; this.changed(); }
-		}, this.changed);
+		}, this.changed, this.failureText);
 		this.active = attempt; this.changed();
 		return attempt;
 	}
@@ -61,7 +67,7 @@ export class SubmissionAttempt {
 	private finished = false;
 	private lastOwner?: SubmissionInterceptorRegistration;
 	phase: "preparing" | "delivering" | "finished" = "preparing";
-	constructor(readonly target: PluginSubmissionTarget, private registrations: readonly SubmissionInterceptorRegistration[], private current: () => boolean, private release: () => void, private changed: () => void) {
+	constructor(readonly target: PluginSubmissionTarget, private registrations: readonly SubmissionInterceptorRegistration[], private current: () => boolean, private release: () => void, private changed: () => void, private failureText: SubmissionFailureText = ENGLISH_FAILURE) {
 		for (const owner of registrations) {
 			const abort = () => this.cancel();
 			owner.signal.addEventListener("abort", abort, { once: true });
@@ -98,19 +104,19 @@ export class SubmissionAttempt {
 				open = false;
 				if (this.signal.aborted || !owner.isCurrent() || !this.current()) { this.cancel(); throw aborted(); }
 				owner.report(error); this.cancel();
-				throw new Error(`Could not prepare submission (${owner.pluginName}): ${error instanceof Error ? error.message : String(error)}. Your input has been kept.`);
+				throw new SubmissionPreparationError(this.failureText(error instanceof Error ? error.message : String(error), owner.pluginName));
 			}
 		}
 		this.check(); return result;
 	}
 	preparationFailure(error: unknown): Error {
 		const message = error instanceof Error ? error.message : String(error);
-		if (message.startsWith("Could not prepare submission (")) return error as Error;
+		if (error instanceof SubmissionPreparationError) return error;
 		if (this.lastOwner) {
 			this.lastOwner.report(error);
-			return new Error(`Could not prepare submission (${this.lastOwner.pluginName}): ${message}. Your input has been kept.`);
+			return new SubmissionPreparationError(this.failureText(message, this.lastOwner.pluginName));
 		}
-		return new Error(`${message}${message.includes("Your input has been kept.") ? "" : ". Your input has been kept."}`);
+		return new SubmissionPreparationError(this.failureText(message));
 	}
 	/** Freeze observer registration before the first POST. */
 	deliver() { this.check(); this.phase = "delivering"; this.changed(); }

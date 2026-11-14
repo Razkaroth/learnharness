@@ -109,4 +109,11 @@ export const composer = {
 	// Dictation: capture ownership
 	"composer.dictation.error.activeElsewhere": "Dictation is active elsewhere",
 	"composer.dictation.error.transcriptFailed": "Dictation transcript could not be applied",
+
+	// Attach files button
+	"composer.attach.label": "Attach files or a folder",
+	"composer.attach.aria": "Attach files",
+	"composer.attach.files": "Files",
+	"composer.attach.folder": "Folder",
+	"composer.attach.folderFailed": "Could not choose a folder. Try again.",
 } as const;

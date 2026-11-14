@@ -163,12 +163,13 @@ function SettingsDialog({
 	/** The keys-section row to unfold (see DialogContext above). */
 	initialRow: string | null;
 }) {
+	const t = useT();
 	// Keep the original visual frame and plain dim backdrop. The shared
 	// untransformed boundary also contains this modal's portaled menus.
 	return <SettingsDialogBody onClose={onClose} initialSection={initialSection}
 		initialRow={initialRow} navigationRequest={navigationRequest}
 		renderFrame={frame => <HostDialog open layerId={layerId} ownerId={null}
-			onClose={onClose} frame={frame} aria-label="Settings"
+			onClose={onClose} frame={frame} aria-label={t("settings.title")}
 			backdropProps={{
 				className: "fixed inset-0 z-50 flex items-center justify-center bg-background/80",
 				"data-testid": "settings-backdrop",
@@ -450,7 +451,7 @@ export function SettingsDialogBody({
 					)}
 					{selected === "plugins" || selected === "core-plugins" ? <PluginsSection origin={selected === "core-plugins" ? "core" : "community"} onOpenSettings={pluginId => setActive(`plugin:${pluginId}`)} />
 						: activePlugin ? <PluginSettingsPage key={`${activePlugin.info.id}/${activePlugin.info.revision}`} plugin={activePlugin} />
-							: activePluginId !== null ? <p role="status" className="px-6 py-5 text-xs text-muted-foreground">Loading plugins…</p>
+							: activePluginId !== null ? <p role="status" className="px-6 py-5 text-xs text-muted-foreground">{t("plugins.loading")}</p>
 								: record === undefined ? (
 						<p className="px-6 py-5 text-xs text-muted-foreground/70">
 							{t("settings.loading")}

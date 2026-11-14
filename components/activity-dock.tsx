@@ -240,7 +240,7 @@ export function toBlobs(feed: ActivityFeed, t: Translate = englishT): ActivityBl
 			id: job.id,
 			process: "job",
 			jobKind: job.kind,
-			title: job.kind === "plugin" ? job.plugin?.label || job.plugin?.toolName || "Plugin worker" : job.title,
+			title: job.kind === "plugin" ? job.plugin?.label || job.plugin?.toolName || t("plugins.worker.fallbackTitle") : job.title,
 			chatId: job.chatId,
 			startedAt: Date.parse(job.createdAt) || 0,
 			cost: job.costUsd ?? null,

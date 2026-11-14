@@ -26,6 +26,7 @@ import {
 	loadOverrides,
 	saveOverrides,
 	type KeyAction,
+	type KeyActionDef,
 	type KeymapAction,
 	type KeymapOverrides,
 	type KeyScope,
@@ -35,7 +36,7 @@ import {
 } from "@/src/core";
 import { useT } from "@/components/i18n";
 import { SettingsRow } from "./controls.tsx";
-import { coreShortcutBindings, pluginShortcutScopeLabel, useKeymapRevision, usePluginShortcutRows } from "../plugin-shortcuts";
+import { coreShortcutBindings, pluginShortcutReason, pluginShortcutScopeLabel, useKeymapRevision, usePluginShortcutRows } from "../plugin-shortcuts";
 
 const SCOPES: { scope: KeyScope; label: TranslationKey }[] = [
 	{ scope: "global", label: "settings.keyboard.scope.global" },
@@ -65,7 +66,8 @@ export function KeyboardSection() {
 	const [rebindError, setRebindError] = useState<string | null>(null);
 	const [nonce, setNonce] = useState(0);
 	const revision = useKeymapRevision();
-	const { candidates, rows: pluginRows } = usePluginShortcutRows();
+	const coreLabel = (action: KeyActionDef) => t(`nav.kbd.${action.id}`);
+	const { candidates, rows: pluginRows } = usePluginShortcutRows(coreLabel);
 	const beginRebind = (id: KeymapAction) => { setRebindError(null); setRebinding(id); };
 
 	// localStorage is read post-mount (SSR-safe); `nonce` re-reads after writes.
@@ -94,9 +96,9 @@ export function KeyboardSection() {
 			if (!binding) return;
 			const next = nextOverrides(loadOverrides(), rebinding, binding);
 			if (rebinding.startsWith("plugin:")) {
-				if (!isPluginShortcutBinding(binding)) { setRebindError("Use a Mod/Alt chord or function key. Escape, Tab and Enter are reserved."); return; }
-				const row = resolvePluginShortcuts(candidates, next, coreShortcutBindings(next)).find(row => row.id === rebinding);
-				if (!row || row.status !== "active") { setRebindError(row?.reason ?? "This plugin action is no longer available."); return; }
+				if (!isPluginShortcutBinding(binding)) { setRebindError(t("settings.keyboard.pluginBinding")); return; }
+				const row = resolvePluginShortcuts(candidates, next, coreShortcutBindings(next, action => t(`nav.kbd.${action.id}`))).find(row => row.id === rebinding);
+				if (!row || row.status !== "active") { setRebindError((row && pluginShortcutReason(row, t)) ?? t("plugins.shortcut.unavailable")); return; }
 			}
 			setRebindError(null);
 			saveOverrides(next);
@@ -105,7 +107,7 @@ export function KeyboardSection() {
 		};
 		window.addEventListener("keydown", onKey, true);
 		return () => window.removeEventListener("keydown", onKey, true);
-	}, [rebinding, controller, candidates]);
+	}, [rebinding, controller, candidates, t]);
 
 	function resetOne(id: KeyAction) {
 		saveOverrides(nextOverrides(loadOverrides(), id, null));
@@ -183,13 +185,13 @@ export function KeyboardSection() {
 			{[...new Set(pluginRows.map(row => row.pluginId))].map(pluginId => <div key={pluginId} data-testid={`kbd-plugin-${pluginId}`}>
 				<p className="mb-1 text-xs uppercase tracking-widest text-muted-foreground/70">{pluginRows.find(row => row.pluginId === pluginId)!.pluginName}</p>
 				<div className="flex flex-col gap-2">{pluginRows.filter(row => row.pluginId === pluginId).map(row => <SettingsRow key={row.id} label={row.name}
-					hint={`${pluginShortcutScopeLabel(row)}${row.reason ? ` · Inactive: ${row.reason}` : ""}`} testid={`kbd-row-${row.id}`}>
+					hint={`${pluginShortcutScopeLabel(row, t)}${row.reason ? ` · ${t("plugins.shortcut.inactive", { reason: pluginShortcutReason(row, t)! })}` : ""}`} testid={`kbd-row-${row.id}`}>
 					<span className="flex items-center gap-2">
-						<kbd className="rounded-sm border border-border bg-muted px-1.5 py-0.5 font-ui text-xs">{rebinding === row.id ? "Press keys…" : row.binding ? formatBinding(row.binding) : "Unbound"}</kbd>
-						{rebinding === row.id ? <button type="button" onClick={() => { setRebinding(null); setRebindError(null); }} className="text-xs text-muted-foreground">Cancel</button> : <>
-							<button type="button" data-testid={`kbd-rebind-${row.id}`} onClick={() => beginRebind(row.id)} className="text-xs text-muted-foreground hover:underline">Rebind</button>
-							{row.binding && <button type="button" data-testid={`kbd-clear-${row.id}`} onClick={() => { saveOverrides(nextOverrides(loadOverrides(), row.id, "")); setNonce(n => n + 1); }} className="text-xs text-muted-foreground hover:underline">Clear</button>}
-							{overrides[row.id] !== undefined && <button type="button" data-testid={`kbd-reset-${row.id}`} onClick={() => { saveOverrides(nextOverrides(loadOverrides(), row.id, null)); setNonce(n => n + 1); }} className="text-xs text-muted-foreground hover:underline">Reset</button>}
+						<kbd className="rounded-sm border border-border bg-muted px-1.5 py-0.5 font-ui text-xs">{rebinding === row.id ? t("settings.keyboard.pressKeys") : row.binding ? formatBinding(row.binding) : t("settings.keyboard.unbound")}</kbd>
+						{rebinding === row.id ? <button type="button" onClick={() => { setRebinding(null); setRebindError(null); }} className="text-xs text-muted-foreground">{t("settings.keyboard.cancel")}</button> : <>
+							<button type="button" data-testid={`kbd-rebind-${row.id}`} onClick={() => beginRebind(row.id)} className="text-xs text-muted-foreground hover:underline">{t("settings.keyboard.rebind")}</button>
+							{row.binding && <button type="button" data-testid={`kbd-clear-${row.id}`} onClick={() => { saveOverrides(nextOverrides(loadOverrides(), row.id, "")); setNonce(n => n + 1); }} className="text-xs text-muted-foreground hover:underline">{t("settings.keyboard.clear")}</button>}
+							{overrides[row.id] !== undefined && <button type="button" data-testid={`kbd-reset-${row.id}`} onClick={() => { saveOverrides(nextOverrides(loadOverrides(), row.id, null)); setNonce(n => n + 1); }} className="text-xs text-muted-foreground hover:underline">{t("settings.keyboard.reset")}</button>}
 						</>}
 					</span>
 				</SettingsRow>)}</div>

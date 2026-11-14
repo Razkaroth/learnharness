@@ -44,7 +44,7 @@ import { dispatchFocusedPluginShortcut, hasLegacyInteractionForeground, isIntera
 import { useSettingsDialog } from "@/components/settings/settings-dialog.tsx";
 import { useT } from "@/components/i18n";
 import { usePlugins } from "./plugins";
-import { dispatchPluginActionShortcut, pluginShortcutScopeLabel, usePluginShortcutRows } from "./plugin-shortcuts";
+import { dispatchPluginActionShortcut, pluginShortcutReason, pluginShortcutScopeLabel, usePluginShortcutRows } from "./plugin-shortcuts";
 
 // Re-exported for the contract pin (tests/keyboard-toggle-sidebar.test.ts):
 // the dispatcher composes event names through the ONE helper — a second
@@ -224,8 +224,8 @@ function CheatSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
 				{[...new Set(pluginRows.map(row => row.pluginId))].map(pluginId => <div key={pluginId} className="mb-4" data-testid={`kbd-cheat-plugin-${pluginId}`}>
 					<div className="mb-1.5 text-xs uppercase tracking-widest text-muted-foreground/70">{pluginRows.find(row => row.pluginId === pluginId)!.pluginName}</div>
 					{pluginRows.filter(row => row.pluginId === pluginId).map(row => <div key={row.id} className="mb-1 text-sm">
-						<div className="flex items-center justify-between gap-4"><span className="text-muted-foreground">{row.name}</span><kbd className="rounded-md border border-border bg-background px-1.5 py-0.5 font-mono text-xs text-card-foreground">{row.binding ? formatBinding(row.binding) : "Unbound"}</kbd></div>
-						<div className="text-xs text-muted-foreground/70">{pluginShortcutScopeLabel(row)}{row.reason ? ` · Inactive: ${row.reason}` : ""}</div>
+						<div className="flex items-center justify-between gap-4"><span className="text-muted-foreground">{row.name}</span><kbd className="rounded-md border border-border bg-background px-1.5 py-0.5 font-mono text-xs text-card-foreground">{row.binding ? formatBinding(row.binding) : t("settings.keyboard.unbound")}</kbd></div>
+						<div className="text-xs text-muted-foreground/70">{pluginShortcutScopeLabel(row, t)}{row.reason ? ` · ${t("plugins.shortcut.inactive", { reason: pluginShortcutReason(row, t)! })}` : ""}</div>
 					</div>)}
 				</div>)}
 		</HostDialog>

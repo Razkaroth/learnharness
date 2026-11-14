@@ -59,7 +59,6 @@ export const nav = {
 	"nav.summary.practiceSessions.other": "{n} practice sessions",
 	"nav.summary.importedNotes.one": "{n} imported note",
 	"nav.summary.importedNotes.other": "{n} imported notes",
-	"nav.summary.empty": "Nothing here yet — import notes to begin building the graph.",
 
 	"nav.minimal.chains": "Chains",
 	"nav.minimal.chains.hint": "Every reasoning chain",

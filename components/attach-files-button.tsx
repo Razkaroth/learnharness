@@ -6,7 +6,7 @@ import { PaperclipIcon } from "lucide-react";
 import { directoryReferencePath, quoteFilePath } from "@/src/core";
 import { Hint } from "@/components/ui/hint";
 import { INSERT_FILE_PATHS_EVENT } from "@/components/path-input";
-import { BROWSER_NOTICE } from "@/components/file-path-drop-zone";
+import { useT } from "@/components/i18n";
 import { InteractionLayerOwner, useInteractionLayer, useInteractionLayers, useOptionalInteractionLayers } from "./interaction-layers";
 import { INTERACTION_LAYER_Z_BASE } from "./host-dialog";
 import { isInteractionScopeEligible } from "./plugin-input-focus";
@@ -82,6 +82,7 @@ function AttachmentPopup({ anchorRef, rootRef, open, close, children }: {
  * aria-disabled, not disabled, so the tooltip still shows.
  */
 export function AttachFilesButton({ editorRef }: { editorRef: React.RefObject<HTMLDivElement | null> }) {
+	const t = useT();
 	const controller = useOptionalInteractionLayers();
 	const pickerRef = useRef<HTMLInputElement>(null);
 	const desktop = useDesktopPaths();
@@ -130,14 +131,14 @@ export function AttachFilesButton({ editorRef }: { editorRef: React.RefObject<HT
 		const choose = window.lh?.chooseAttachmentFolder;
 		setOpen(false);
 		setNotice("");
-		if (!choose) { setNotice(BROWSER_NOTICE); return; }
+		if (!choose) { setNotice(t("composer.filePaths.browserOnly")); return; }
 		choosingFolder.current = true;
 		try {
 			const chosen = await choose();
 			if (chosen === null) return; // Native cancellation leaves the draft intact.
 			const path = directoryReferencePath(chosen);
 			if (editor?.isConnected && editor === editorRef.current) editor.dispatchEvent(new CustomEvent(INSERT_FILE_PATHS_EVENT, { detail: [path] }));
-		} catch { setNotice("Could not choose a folder. Try again."); }
+		} catch { setNotice(t("composer.attach.folderFailed")); }
 		finally { choosingFolder.current = false; }
 	};
 	return (
@@ -156,11 +157,11 @@ export function AttachFilesButton({ editorRef }: { editorRef: React.RefObject<HT
 					e.currentTarget.value = ""; // allow re-picking the same file
 				}}
 			/>
-			<Hint label={desktop ? "Attach files or a folder" : BROWSER_NOTICE}>
+			<Hint label={t(desktop ? "composer.attach.label" : "composer.filePaths.browserOnly")}>
 				<button
 					ref={buttonRef}
 					type="button"
-					aria-label="Attach files"
+					aria-label={t("composer.attach.aria")}
 					aria-disabled={!desktop}
 					aria-haspopup="menu"
 					aria-expanded={open}
@@ -172,7 +173,7 @@ export function AttachFilesButton({ editorRef }: { editorRef: React.RefObject<HT
 				</button>
 			</Hint>
 			{(open || notice) && <AttachmentPopup anchorRef={buttonRef} rootRef={popupRef} open={open} close={() => setOpen(false)}><div ref={popupRef} role={open ? "menu" : "status"}
-				aria-label={open ? "Attach files or a folder" : undefined}
+				aria-label={open ? t("composer.attach.label") : undefined}
 				data-testid="attachment-popup"
 				style={{ position: "fixed", zIndex: 60, ...(placement ?? { left: 0, top: 0, visibility: "hidden" }), overflowY: "auto" }}
 				className={open ? "w-max rounded-lg border bg-card p-1 shadow-lg" : "w-64 rounded-lg border bg-card p-2 text-xs text-muted-foreground shadow-lg"}
@@ -184,9 +185,9 @@ export function AttachFilesButton({ editorRef }: { editorRef: React.RefObject<HT
 				}}>
 				{open ? <>
 					<button type="button" role="menuitem" className="block w-full rounded px-2 py-1 text-left text-xs hover:bg-accent"
-						onClick={() => { setOpen(false); pickerRef.current?.click(); }}>Files</button>
+						onClick={() => { setOpen(false); pickerRef.current?.click(); }}>{t("composer.attach.files")}</button>
 					<button type="button" role="menuitem" className="block w-full rounded px-2 py-1 text-left text-xs hover:bg-accent"
-						onClick={() => { void chooseFolder(); }}>Folder</button>
+						onClick={() => { void chooseFolder(); }}>{t("composer.attach.folder")}</button>
 				</> : notice}
 			</div></AttachmentPopup>}
 		</div>
