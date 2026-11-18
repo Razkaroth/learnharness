@@ -1,7 +1,12 @@
 const { parseHTML } = require('linkedom');
+const { englishI18n } = require('./i18n.cjs');
 
 // Public controlled UI contract only; no native widget implementation imports.
-function fixture(document) {
+function fixture(document, locales) {
+  const i18n = locales ? {
+    language: 'en',
+    t: (key, vars) => (locales[key] ?? key).replace(/\{(\w+)\}/g, (match, name) => vars && Object.hasOwn(vars, name) ? String(vars[name]) : match),
+  } : englishI18n;
   const app = document.createElement('main'); document.body.append(app);
   const settings = document.createElement('aside'); document.body.append(settings);
   const controller = new AbortController();
@@ -55,7 +60,7 @@ function fixture(document) {
     return mount;
   }
   const ctx = {
-    signal: controller.signal, manifest: { id: 'flashcards' }, cleanup(fn) { cleanups.push(fn); },
+    signal: controller.signal, manifest: { id: 'flashcards' }, i18n, cleanup(fn) { cleanups.push(fn); },
     registerView(value) { view = value; return () => {}; },
     registerAction(value) { registrations.push(value); return () => {}; },
     placeAction(value) { registrations.push(value); return () => {}; },

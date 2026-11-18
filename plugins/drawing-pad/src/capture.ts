@@ -1,5 +1,6 @@
 import { toSvg } from "html-to-image";
 import { abortable, frame } from "./abort.ts";
+import { t } from "./i18n.ts";
 import { paintInk } from "./strokes.ts";
 import { referenceFontCSS } from "./fonts.ts";
 import { exportBounds, exportRaster, referenceBounds } from "./geometry.ts";
@@ -7,7 +8,7 @@ import type { Capture, Draft } from "./state.ts";
 
 export function hasVisibleInk(canvas: HTMLCanvasElement): boolean {
   const context = canvas.getContext("2d", { willReadFrequently: true });
-  if (!context) throw new Error("Could not read the drawing canvas.");
+  if (!context) throw new Error(t("error.canvasRead"));
   const pixels = context.getImageData(0, 0, canvas.width, canvas.height).data;
   return pixels.some((value, index) => index % 4 === 3 && value > 0);
 }
@@ -49,16 +50,16 @@ async function waitForReference(root: HTMLElement, slots: readonly HTMLElement[]
 export async function captureBackground(root: HTMLElement | undefined, slots: readonly HTMLElement[], width: number, height: number,
   background: string, signal: AbortSignal, frozenSize?: { width: number; height: number; pixelRatio: number }): Promise<Omit<Draft, "id" | "revision" | "strokes" | "hasInk" | "color">> {
   signal.throwIfAborted();
-  if (width <= 0 || height <= 0) throw new Error("The drawing sheet is not visible.");
+  if (width <= 0 || height <= 0) throw new Error(t("error.sheetNotVisible"));
   const pixelRatio = frozenSize?.pixelRatio ?? Math.min(window.devicePixelRatio || 1, 2);
   if (!root) return { background: "", backgroundColor: background, width: 0, height: 0, pixelRatio };
   const canvas = document.createElement("canvas");
   const context = canvas.getContext("2d");
-  if (!context) throw new Error("Drawing is unavailable in this browser.");
+  if (!context) throw new Error(t("error.drawingUnavailable"));
   {
     await waitForReference(root, slots, signal);
     const questionWidth = root.clientWidth, questionHeight = root.scrollHeight;
-    if (!questionWidth || !questionHeight) throw new Error("The question reference is not visible.");
+    if (!questionWidth || !questionHeight) throw new Error(t("error.referenceNotVisible"));
     let changed = false;
     const observer = new MutationObserver(() => { changed = true; });
     observer.observe(root, { subtree: true, childList: true, attributes: true, characterData: true });
@@ -84,7 +85,7 @@ export async function captureBackground(root: HTMLElement | undefined, slots: re
   }
   signal.throwIfAborted();
   const raster = canvas.toDataURL("image/png");
-  if (!raster.startsWith("data:image/png;base64,")) throw new Error("Could not capture the complete question reference.");
+  if (!raster.startsWith("data:image/png;base64,")) throw new Error(t("error.captureReference"));
   return { background: raster, backgroundColor: background, width, height, pixelRatio };
 }
 /** Freeze both layers from one immutable attempt snapshot. No toolbar/chrome. */
@@ -92,14 +93,14 @@ export async function exportSheet(captured: Capture, signal: AbortSignal): Promi
   signal.throwIfAborted();
   const draft = captured.draft;
   const bounds = exportBounds(draft.width, draft.height, draft.strokes);
-  if (!bounds) throw new Error("No visible ink could be captured. Your drawing has been kept.");
+  if (!bounds) throw new Error(t("error.noVisibleInk"));
   const raster = exportRaster(bounds, draft.pixelRatio, captured.imageScale);
   const ink = document.createElement("canvas"); ink.width = raster.width; ink.height = raster.height;
   paintInk(ink, bounds.width, bounds.height, draft.strokes, captured.color, { x: -bounds.x, y: -bounds.y });
-  if (!hasVisibleInk(ink)) throw new Error("No visible ink could be captured at the export resolution. Your drawing has been kept.");
+  if (!hasVisibleInk(ink)) throw new Error(t("error.noVisibleInkExport"));
   const combined = document.createElement("canvas"); combined.width = raster.width; combined.height = raster.height;
   const context = combined.getContext("2d");
-  if (!context) throw new Error("Could not export your drawing. Your drawing has been kept.");
+  if (!context) throw new Error(t("error.exportDrawing"));
   context.fillStyle = draft.backgroundColor; context.fillRect(0, 0, combined.width, combined.height);
   if (draft.background) {
     const image = new Image(); image.src = draft.background;
@@ -113,6 +114,6 @@ export async function exportSheet(captured: Capture, signal: AbortSignal): Promi
   context.drawImage(ink, 0, 0);
   signal.throwIfAborted();
   const data = combined.toDataURL("image/png").split(",")[1];
-  if (!data) throw new Error("Could not encode your drawing. Your drawing has been kept.");
+  if (!data) throw new Error(t("error.encodeDrawing"));
   return { type: "image", mimeType: "image/png", data };
 }

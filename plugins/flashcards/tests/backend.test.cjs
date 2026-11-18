@@ -7,6 +7,7 @@ const path = require('node:path');
 const { randomUUID } = require('node:crypto');
 const { activate, pack, estimate } = require('../src/backend.cjs');
 const { defaults } = require('../src/store.cjs');
+const { englishBackendI18n } = require('./i18n.cjs');
 const flush = () => new Promise(resolve => setImmediate(resolve));
 const node = (id, source = 'source') => ({ id, name: `Fact ${id}`, statement: `Statement ${id}`, provenance: [{ chatId: source }] });
 const graph = (...ids) => ({ propositions: ids.map(id => node(id)), chains: [], sessions: { source: 'Source lesson' }, fileSources: {} });
@@ -85,7 +86,7 @@ function harness(t, initialGraph = graph('p1')) {
   h.dispose = () => { for (const cleanup of cleanups.splice(0).reverse()) cleanup(); controller?.abort(); };
   h.activate = () => {
     h.dispose(); handlers = new Map(); controller = new AbortController();
-    activate({ dataDirectory: directory, signal: controller.signal,
+    activate({ dataDirectory: directory, signal: controller.signal, i18n: englishBackendI18n,
       workers: workers.service, learning: { graph: () => structuredClone(h.graph) },
       inference: { catalog: async () => { h.catalogReads++; return h.resolveCatalog ? h.resolveCatalog() : structuredClone(h.catalog); } },
       events: { emit() {} }, handle: (name, handler) => handlers.set(name, handler),

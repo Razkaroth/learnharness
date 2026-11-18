@@ -18,6 +18,7 @@ await build({ ...common, entryPoints: ["src/backend.ts"], outfile: path.join(out
 for (const [from, to] of [["manifest.json", "manifest.json"], ["src/styles.css", "styles.css"], ["README.md", "README.md"], ["LICENSE", "LICENSE"]]) {
   fs.copyFileSync(path.join(root, from), path.join(output, to));
 }
+fs.cpSync(path.join(root, "locales"), path.join(output, "locales"), { recursive: true });
 // Keep dependency attribution and the full licenses of every JS package actually
 // included in the browser bundle. No node_modules or source tree ships at runtime.
 const packages = new Map();

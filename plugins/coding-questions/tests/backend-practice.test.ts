@@ -7,6 +7,7 @@ import type { PluginBackendContext, PluginProblemProcessingContext, PluginProble
 import { activate } from "../src/backend.ts";
 import type { CodingPayload } from "../src/contract.ts";
 import { readTestResult } from "../src/test-result.ts";
+import { englishBackendI18n } from "./i18n.ts";
 
 test("practice processor observes repeated submissions, keeps thinking/solution separate, and cooperates with cancellation", async (t) => {
   const dataDirectory = await mkdtemp(path.join(os.tmpdir(), "coding-practice-test-"));
@@ -15,6 +16,7 @@ test("practice processor observes repeated submissions, keeps thinking/solution 
   let disposed = 0;
   const cleanup = activate({
     dataDirectory,
+    i18n: englishBackendI18n,
     registerQuestionType() { return () => { disposed++; }; },
     registerProblemType(value: PluginProblemTypeDefinition) { processSubmission = value.processSubmission!; return () => { disposed++; }; },
     registerInstructions() { return () => { disposed++; }; },

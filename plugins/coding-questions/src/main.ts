@@ -1,6 +1,7 @@
 import type { PluginFrontendContext, PluginProblemRenderer, PluginQuestionRenderer } from "learnharness-plugin-api";
 import { QUESTION_TYPE_ID, PROBLEM_TYPE_ID, type CodingPayload, type CodingQuestionPayload } from "./contract.ts";
 import { mountAnswered, mountAnswerEditor, mountSubmissionEditor } from "./editor.ts";
+import { useI18n, t } from "./i18n.ts";
 import { mountTestResult } from "./result-view.ts";
 import { mountModelSolution } from "./solution-view.ts";
 import { mountSavedQuestion } from "./question-view.ts";
@@ -10,12 +11,13 @@ function mountRecordedTests(container: HTMLElement, ctx: PluginFrontendContext, 
   const result = "result" in outcome ? readTestResult(outcome.result) : null;
   const failure: CodingTestResult = {
     status: "error", exitCode: null, stdout: "", stderr: "", stdoutTruncated: false, stderrTruncated: false,
-    message: "error" in outcome ? outcome.error : "Saved test result is unavailable.",
+    message: "error" in outcome ? outcome.error : t("result.unavailable"),
   };
   return mountTestResult(container, ctx.ui, result ?? failure, signal, headerContainer);
 }
 
 export function activate(ctx: PluginFrontendContext): () => void {
+  useI18n(ctx.i18n);
   const unregisterQuestion = ctx.registerQuestionRenderer({
     id: QUESTION_TYPE_ID,
     supportedContractVersions: [1],

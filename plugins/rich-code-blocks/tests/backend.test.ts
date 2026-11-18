@@ -6,6 +6,7 @@ import path from "node:path";
 import type { PluginBackendContext } from "learnharness-plugin-api";
 import { activate } from "../src/backend.ts";
 import { DEFAULT_SETTINGS, FAMILIES, INSTRUCTIONS, parseSettings } from "../src/contract.ts";
+import { englishBackendI18n } from "./i18n.ts";
 
 function fixture(directory: string) {
   const controller = new AbortController();
@@ -13,7 +14,7 @@ function fixture(directory: string) {
   const instructions = new Set<{ agents: string[]; text: string }>();
   const events: { topic: string; data: unknown }[] = [];
   const ctx = {
-    dataDirectory: directory, signal: controller.signal,
+    dataDirectory: directory, signal: controller.signal, i18n: englishBackendI18n,
     handle(name: string, handler: (input: unknown) => unknown) { handlers.set(name, handler); return () => { handlers.delete(name); }; },
     registerInstructions(value: { agents: string[]; text: string }) { instructions.add(value); return () => { instructions.delete(value); }; },
     events: { emit(topic: string, data: unknown) { events.push({ topic, data }); } },

@@ -10,6 +10,12 @@ import { createPluginSessionActionContext, saveOverrides, loadOverrides, eventBi
 import { activate } from "../src/main.ts";
 import { acceptedPoseKeys } from "../src/poses.ts";
 import { referenceFontCSS } from "../src/fonts.ts";
+import english from "../locales/en.json" with { type: "json" };
+
+const englishI18n = {
+  language: "en",
+  t: (key, vars) => (english[key] ?? key).replace(/\{(\w+)\}/g, (match, name) => vars && Object.hasOwn(vars, name) ? String(vars[name]) : match),
+};
 
 const nativeFetch = window.fetch.bind(window);
 window.fetch = (input, init) => {
@@ -86,7 +92,7 @@ function updateSettings(schema) {
   }
 }
 const ctx = {
-  manifest: { id: "drawing-pad" }, signal: controller.signal,
+  manifest: { id: "drawing-pad" }, signal: controller.signal, i18n: englishI18n,
   cleanup(fn) { cleanup.push(fn); },
   registerAction(value) { action = value; refresh(); return () => { action = undefined; topButton.textContent = "Disabled"; }; },
   placeAction(value) { window.fixture.placement = value; return () => {}; },

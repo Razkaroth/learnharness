@@ -5,8 +5,9 @@ const { openStore } = require('./store.cjs');
 const scheduler = require('./scheduler.cjs');
 const { statistics } = require('./statistics.cjs');
 const fileGeneration = require('./file-generation.cjs');
+const { useI18n, t } = require('./i18n.cjs');
+const prompts = require('./generation-prompts.cjs');
 
-const { graphInstructions: instructions, graphPromptFor: promptFor } = require('./generation-prompts.cjs');
 const resultSchema = {
   type: 'object', additionalProperties: false, required: ['propositions'], properties: {
     propositions: { type: 'array', items: { type: 'object', additionalProperties: false, required: ['propositionId', 'cards'], properties: {
@@ -14,7 +15,7 @@ const resultSchema = {
     } } },
   },
 };
-const estimate = (input) => Math.ceil(Buffer.byteLength(instructions + JSON.stringify(resultSchema) + promptFor(input), 'utf8') / 3) + 256;
+const estimate = (input) => Math.ceil(Buffer.byteLength(prompts.graphInstructions + JSON.stringify(resultSchema) + prompts.graphPromptFor(input), 'utf8') / 3) + 256;
 const fingerprint = (input) => createHash('sha256').update(JSON.stringify(input)).digest('hex');
 const activeBatch = (s) => s.batches.findLast(b => ['running', 'cancelling'].includes(b.status));
 const memberships = (s, id) => s.decks.filter(d => d.propositionIds.includes(id)).map(d => d.id);
@@ -96,7 +97,8 @@ function pack(graph, ids, state) {
 }
 
 function activate(ctx) {
-  if (!ctx.workers?.register || !ctx.learning?.graph) fail('This app build does not provide the plugin capabilities required by Flashcards.');
+  useI18n(ctx.i18n);
+  if (!ctx.workers?.register || !ctx.learning?.graph) fail(t('backend.missingCapabilities'));
   const store = openStore(ctx.dataDirectory);
   const preflights = new Map(), tickets = new Map(), observers = new Map(), applicationErrors = new Map();
   let disposed = false, sourceCleanupError = null;
@@ -220,7 +222,7 @@ function activate(ctx) {
       }
     }
   }
-  ctx.cleanup(ctx.workers.register({ id: 'generate-cues-v1', instructions, resultSchema, validateResult }));
+  ctx.cleanup(ctx.workers.register({ id: 'generate-cues-v1', instructions: prompts.graphInstructions, resultSchema, validateResult }));
   ctx.cleanup(ctx.workers.register({ id: 'generate-file-facts-v1', instructions: fileGeneration.instructions, resultSchema: fileGeneration.resultSchema, validateResult: fileGeneration.validateResult }));
   reconcile();
 
@@ -372,7 +374,7 @@ function activate(ctx) {
       const tokens = estimate(input);
       const maxTokens = Math.min(8192, resolved.entry.maxTokens ?? 8192, (resolved.entry.contextWindow ?? Infinity) - tokens - 256);
       if (maxTokens < 1024) fail('The selected model cannot fit this context and an output allowance. Reduce the chunk budget or choose another model.');
-      return { input, prompt: promptFor(input), maxTokens, tokens };
+      return { input, prompt: prompts.graphPromptFor(input), maxTokens, tokens };
     });
     const id = randomUUID();
     preflights.set(id, { kind: 'graph', revision: state.revision, settingsHash: fingerprint(state.settings), model: resolved.spec, plans, createdAt: Date.now() });
@@ -571,4 +573,7 @@ function activate(ctx) {
   const cleanup = () => { disposed = true; for (const stop of observers.values()) stop(); observers.clear(); preflights.clear(); tickets.clear(); };
   ctx.cleanup(cleanup);
 }
-module.exports = { activate, pack, validateResult, estimate, instructions, resultSchema, validateSettings };
+module.exports = {
+  activate, pack, validateResult, estimate, resultSchema, validateSettings,
+  get instructions() { return prompts.graphInstructions; },
+};

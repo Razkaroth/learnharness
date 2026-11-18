@@ -3,8 +3,10 @@ import path from "node:path";
 import { randomUUID } from "node:crypto";
 import type { PluginBackendContext } from "learnharness-plugin-api";
 import { DEFAULT_SETTINGS, FAMILIES, INSTRUCTIONS, parseChange, parseSettings, type Settings } from "./contract.ts";
+import { useI18n } from "./i18n.ts";
 
 export function activate(ctx: PluginBackendContext): () => void {
+  useI18n(ctx.i18n);
   const file = path.join(ctx.dataDirectory, "settings.json");
   let settings: Settings;
   try { settings = parseSettings(JSON.parse(fs.readFileSync(file, "utf8"))); }

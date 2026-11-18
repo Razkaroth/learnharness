@@ -54,11 +54,12 @@ const backend = await build({
 });
 for (const result of [browser, worker, backend]) {
   for (const input of Object.keys(result.metafile.inputs)) {
-    if (!input.startsWith("src/") && !input.startsWith("node_modules/") && !input.startsWith("node-only:")) throw new Error(`Unexpected runtime input: ${input}`);
+    if (!input.startsWith("src/") && !input.startsWith("node_modules/") && !input.startsWith("node-only:") && !input.startsWith("locales/")) throw new Error(`Unexpected runtime input: ${input}`);
   }
 }
 for (const file of ["manifest.json", "README.md", "LICENSE", "THIRD-PARTY.md"]) fs.copyFileSync(path.join(root, file), path.join(output, file));
 fs.copyFileSync(path.join(root, "src/styles.css"), path.join(output, "styles.css"));
+fs.cpSync(path.join(root, "locales"), path.join(output, "locales"), { recursive: true });
 const engine = path.join(root, "node_modules/isomorphic-tikzjax");
 fs.cpSync(path.join(engine, "tex"), path.join(output, "assets/tex"), { recursive: true });
 fs.cpSync(path.join(engine, "css/bakoma"), path.join(output, "assets/fonts/bakoma"), { recursive: true });

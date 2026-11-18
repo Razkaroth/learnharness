@@ -1,7 +1,7 @@
 'use strict';
 const { createHash } = require('node:crypto');
 
-const { fileInstructions: instructions, filePromptFor: promptFor } = require('./generation-prompts.cjs');
+const prompts = require('./generation-prompts.cjs');
 const textSchema = { type: 'string', minLength: 1, pattern: '\\S' };
 const resultSchema = {
   type: 'object', additionalProperties: false, required: ['facts'], properties: {
@@ -66,7 +66,7 @@ function validateFileInput(input) {
   const fingerprint = createHash('sha256').update(JSON.stringify([name, markdown]), 'utf8').digest('hex');
   return { name, markdown, fingerprint };
 }
-const estimate = prompt => Math.ceil(Buffer.byteLength(instructions + JSON.stringify(resultSchema) + prompt, 'utf8') / 3) + 256;
+const estimate = prompt => Math.ceil(Buffer.byteLength(prompts.fileInstructions + JSON.stringify(resultSchema) + prompt, 'utf8') / 3) + 256;
 function prepareFileChunks(options) {
   const { name, markdown } = validateFileInput(options);
   const { chunkBudget, entry, ranges } = options;
@@ -83,7 +83,7 @@ function prepareFileChunks(options) {
   const ordered = [...spans].sort((a, b) => a.start - b.start);
   if (ordered.some((span, index) => index && span.start < ordered[index - 1].end)) fail('Source ranges must not overlap.');
   const plan = (start, end) => {
-    const input = { name, markdown: markdown.slice(start, end) }, prompt = promptFor(input);
+    const input = { name, markdown: markdown.slice(start, end) }, prompt = prompts.filePromptFor(input);
     const tokens = estimate(prompt);
     const maxTokens = Math.min(8192, outputLimit, contextLimit - tokens - 256);
     return { start, end, input, prompt, tokens, maxTokens };
@@ -113,4 +113,7 @@ function prepareFileChunks(options) {
   return chunks;
 }
 
-module.exports = { instructions, resultSchema, validateResult, validateFileInput, prepareFileChunks };
+module.exports = {
+  get instructions() { return prompts.fileInstructions; },
+  resultSchema, validateResult, validateFileInput, prepareFileChunks,
+};

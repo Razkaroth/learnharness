@@ -1,6 +1,7 @@
 import type { PluginAction, PluginActionContext, PluginFrontendContext, PluginSettingsSchema, PluginSurfaceProps, PluginWidgetHandle } from "learnharness-plugin-api";
 import { abortable } from "./abort.ts";
 import { exportSheet } from "./capture.ts";
+import { useI18n, t } from "./i18n.ts";
 import { acceptedPoseKeys, occurrenceKey, parsePoseResponse } from "./poses.ts";
 import { colorError, imageScaleError, parseSettings, type Settings } from "./settings.ts";
 import { mountSheet, type MountedSheet } from "./sheet.ts";
@@ -17,6 +18,7 @@ interface OpenPad {
   closed: boolean;
 }
 export async function activate(ctx: PluginFrontendContext): Promise<() => void> {
+  useI18n(ctx.i18n);
   let disposed = false, open: OpenPad | undefined, current: Settings | undefined;
   let settings: PluginWidgetHandle<PluginSettingsSchema> | undefined;
   const cleanups: (() => void)[] = [];
@@ -55,7 +57,7 @@ export async function activate(ctx: PluginFrontendContext): Promise<() => void> 
     open = pad;
     try {
       pad.handle = ctx.ui.openSurface(context.surfaceTarget, {
-        title: "Drawing pad", background: "opaque",
+        title: t("surface.title"), background: "opaque",
         content(container, signal) {
           if (pad.closed || signal.aborted) return;
           const mounted = mountSheet(container, ctx, sheets, state, context.view.input, signal);
@@ -84,7 +86,7 @@ export async function activate(ctx: PluginFrontendContext): Promise<() => void> 
     get name() {
       const id = pageSessions.get(ctx.app.pathname());
       const state = id ? sheets.sessions.get(id) : undefined;
-      return state && sheets.pending(state) ? "Draw (unsent)" : "Draw";
+      return state && sheets.pending(state) ? t("action.drawUnsent") : t("action.draw");
     },
     run(context) { if (context.surface === "session") toggle(context); },
   };
@@ -95,33 +97,33 @@ export async function activate(ctx: PluginFrontendContext): Promise<() => void> 
     return mounted?.canUseEditingShortcuts() ? mounted : undefined;
   }
   const undoAction: PluginAction = {
-    id: "undo", name: "Undo drawing",
+    id: "undo", name: t("action.undo"),
     shortcut: { scope: { sessions: ["teaching", "practice"] }, defaultBinding: "mod+z" },
     disabled: context => !editingPad(context)?.canUndo(),
     run(context) { editingPad(context)?.undo(); },
   };
   const toggleToolsAction: PluginAction = {
-    id: "toggle-pen-eraser", name: "Toggle pen/eraser",
+    id: "toggle-pen-eraser", name: t("action.togglePenEraser"),
     shortcut: { scope: { sessions: ["teaching", "practice"] }, defaultBinding: "mod+shift+e" },
     disabled: context => !editingPad(context),
     run(context) { editingPad(context)?.togglePenEraser(); },
   };
   const handAction: PluginAction = {
-    id: "hand", name: "Hand",
+    id: "hand", name: t("action.hand"),
     shortcut: { scope: { sessions: ["teaching", "practice"] }, defaultBinding: "mod+shift+h" },
     disabled: context => !editingPad(context),
     run(context) { editingPad(context)?.selectHand(); },
   };
   const rows = (value: Settings): PluginSettingsSchema["rows"] => [...([
-    { key: "darkInkColor", label: "Dark mode ink color" },
-    { key: "lightInkColor", label: "Light mode ink color" },
+    { key: "darkInkColor", label: t("settings.darkInkColor") },
+    { key: "lightInkColor", label: t("settings.lightInkColor") },
   ] as const).map(({ key, label }) => ({
     key, type: "text" as const, label, value: value[key],
-    description: "Six-digit hex color. Recolors all unsent ink when this app theme mode is active.", validate: colorError,
+    description: t("settings.inkColorDescription"), validate: colorError,
     async onChange(color: string) { applySettings(await ctx.call("set-ink-color", { [key]: color })); },
   })), {
-    key: "imageScale", type: "number", label: "Image scale", value: value.imageScale, min: 0, max: 100,
-    description: "Export percentage (default 50%). Applied before the fixed 2000 × 2000 pixel cap. Does not change the drawing surface.",
+    key: "imageScale", type: "number", label: t("settings.imageScale"), value: value.imageScale, min: 0, max: 100,
+    description: t("settings.imageScaleDescription"),
     validate: imageScaleError,
     async onChange(imageScale) { applySettings(await ctx.call("set-image-scale", { imageScale })); },
   }];
@@ -236,7 +238,7 @@ export async function activate(ctx: PluginFrontendContext): Promise<() => void> 
         if (!captured) return;
         const result = captured.sendImage ? appendDrawing(input, await exportSheet(captured, context.signal)) : input;
         context.signal.throwIfAborted();
-        if (state.draft?.id !== captured.draft.id) throw new Error("The captured drawing sheet was reset. Review the current input and submit again.");
+        if (state.draft?.id !== captured.draft.id) throw new Error(t("error.sheetReset"));
         context.onAccepted(() => { if (!disposed && !ctx.signal.aborted) sheets.accepted(captured); });
         return result;
       },

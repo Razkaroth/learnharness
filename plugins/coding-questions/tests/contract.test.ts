@@ -5,6 +5,7 @@ import type { PluginBackendContext, PluginQuestionTypeDefinition } from "learnha
 import { activate } from "../src/backend.ts";
 import { definition, instructions, practiceInstructions, problemDefinition, isReady, normalizeLineEndings, readTests } from "../src/contract.ts";
 import { findLanguage } from "../src/editor.ts";
+import { englishBackendI18n } from "./i18n.ts";
 
 const question = Compile(definition.questionSchema);
 const answer = Compile(definition.answerSchema);
@@ -14,6 +15,7 @@ const modelSolution = "```python\ndef example():\n    return 42\n```\n\nReturn t
 test("teacher question and practice problem register separately with role-scoped instructions and cleanup", () => {
   const calls: unknown[] = [];
   const cleanup = activate({
+    i18n: englishBackendI18n,
     registerQuestionType(value) { calls.push(value); return () => { calls.push("question disposed"); }; },
     registerProblemType(value) { calls.push(value); return () => { calls.push("problem disposed"); }; },
     registerInstructions(value) { calls.push(value); return () => { calls.push("instructions disposed"); }; },

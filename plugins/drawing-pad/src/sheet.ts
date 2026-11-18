@@ -1,6 +1,7 @@
 import type { PluginButtonProps, PluginFrontendContext, PluginSessionViewInput, PluginWidgetHandle } from "learnharness-plugin-api";
 import { captureBackground } from "./capture.ts";
 import { frame } from "./abort.ts";
+import { t } from "./i18n.ts";
 import { PEN, ERASER, HAND, UNDO } from "./icons.ts";
 import { referenceFor, mountReference } from "./reference.ts";
 import { referenceBounds, viewOrigin } from "./geometry.ts";
@@ -24,12 +25,12 @@ export function mountSheet(container: HTMLElement, ctx: PluginFrontendContext, s
   toolbar.setAttribute("role", "group");
   const viewport = document.createElement("div"); viewport.className = "drawing-pad-viewport";
   viewport.tabIndex = -1; viewport.dataset.pluginInitialFocus = "";
-  viewport.setAttribute("role", "group"); viewport.setAttribute("aria-label", "Drawing sheet");
+  viewport.setAttribute("role", "group"); viewport.setAttribute("aria-label", t("sheet.aria"));
   const paper = document.createElement("div"); paper.className = "drawing-pad-paper";
-  const background = document.createElement("img"); background.alt = "Frozen question reference";
+  const background = document.createElement("img"); background.alt = t("sheet.backgroundAlt");
   background.className = "drawing-pad-background"; background.draggable = false;
   const canvas = document.createElement("canvas"); canvas.className = "drawing-pad-ink";
-  canvas.setAttribute("aria-label", "Draw with a mouse or pen; pan with Hand or a right mouse drag");
+  canvas.setAttribute("aria-label", t("sheet.canvasAria"));
   const status = document.createElement("div"); status.className = "drawing-pad-status"; status.setAttribute("role", "status");
   paper.append(background, canvas); viewport.append(paper, status); root.append(toolbar, viewport); container.append(root);
   const buttons: PluginWidgetHandle<PluginButtonProps>[] = [];
@@ -45,9 +46,9 @@ export function mountSheet(container: HTMLElement, ctx: PluginFrontendContext, s
       ...(icon ? { icon, iconOnly: true } : {}) }, { signal });
     buttons.push(handle); return handle;
   };
-  const pen = toolButton("Pen", () => sheets.setTool(state, "pen"), PEN);
-  const eraser = toolButton("Eraser", () => sheets.setTool(state, "eraser"), ERASER);
-  const hand = toolButton("Hand", () => sheets.setTool(state, "hand"), HAND);
+  const pen = toolButton(t("tool.pen"), () => sheets.setTool(state, "pen"), PEN);
+  const eraser = toolButton(t("tool.eraser"), () => sheets.setTool(state, "eraser"), ERASER);
+  const hand = toolButton(t("tool.hand"), () => sheets.setTool(state, "hand"), HAND);
   const commitHistory = (strokes: Stroke[]) => sheets.update(state, strokes);
   const editable = () => !disposed && !signal.aborted && !preparing && !failure && !!state.draft && pointerId === undefined;
   const canUseEditingShortcuts = () => {
@@ -60,12 +61,13 @@ export function mountSheet(container: HTMLElement, ctx: PluginFrontendContext, s
   const undoHistory = () => { if (canUndo()) commitHistory(state.draft!.strokes.slice(0, -1)); };
   const togglePenEraser = () => { if (editable()) sheets.setTool(state, state.tool === "pen" ? "eraser" : "pen"); };
   const selectHand = () => { if (editable()) sheets.setTool(state, "hand"); };
-  const undo = toolButton("Undo", undoHistory, UNDO);
-  const clear = toolButton("Clear", () => { if (pointerId === undefined && state.draft) commitHistory([]); });
+  const undo = toolButton(t("tool.undo"), undoHistory, UNDO);
+  const clear = toolButton(t("tool.clear"), () => { if (pointerId === undefined && state.draft) commitHistory([]); });
   const render = () => {
     if (disposed) return;
     const draft = state.draft;
-    toolbar.setAttribute("aria-label", `Drawing tools. ${state.tool === "pen" ? "Pen" : state.tool === "eraser" ? "Eraser" : "Hand"} selected.`);
+    const toolLabel = state.tool === "pen" ? t("tool.pen") : state.tool === "eraser" ? t("tool.eraser") : t("tool.hand");
+    toolbar.setAttribute("aria-label", t("sheet.toolsAria", { tool: toolLabel }));
     pen.update({ variant: state.tool === "pen" ? "secondary" : "outline", disabled: preparing || !!failure });
     eraser.update({ variant: state.tool === "eraser" ? "secondary" : "outline", disabled: preparing || !!failure });
     hand.update({ variant: state.tool === "hand" ? "secondary" : "outline", disabled: preparing || !!failure });
@@ -74,7 +76,7 @@ export function mountSheet(container: HTMLElement, ctx: PluginFrontendContext, s
     canvas.style.cursor = panDrag ? "grabbing" : state.tool === "hand" ? "grab" : "default";
     status.hidden = !preparing && !failure;
     status.setAttribute("role", failure ? "alert" : "status");
-    status.textContent = failure ?? (preparing ? "Preparing drawing sheet…" : "");
+    status.textContent = failure ?? (preparing ? t("sheet.preparing") : "");
     paper.hidden = !draft || preparing || !!failure;
     if (draft) {
       // Keep the previous raster and its ink readable until the new palette
@@ -197,7 +199,7 @@ export function mountSheet(container: HTMLElement, ctx: PluginFrontendContext, s
       sheets.create(state, { ...sheet, reference: content, palette });
     } catch (error) {
       if (!disposed && !signal.aborted) {
-        preparing = false; failure = `Could not prepare the drawing background. ${error instanceof Error ? error.message : ""} Close and reopen Draw to try again.`;
+        preparing = false; failure = t("sheet.prepareFailed", { detail: error instanceof Error ? error.message : "" });
         render();
       }
     } finally { referenceMount?.dispose(); reference?.remove(); }

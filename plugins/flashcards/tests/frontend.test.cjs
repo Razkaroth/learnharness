@@ -5,6 +5,7 @@ const test = require('node:test');
 const { File } = require('node:buffer');
 const { buildSync } = require('esbuild');
 const { fixture, flush, deferred, createDocument } = require('./ui-fixture.cjs');
+const { englishI18n, english } = require('./i18n.cjs');
 const source = buildSync({ entryPoints: [path.join(__dirname, '../src/main.js')], bundle: true, platform: 'browser', format: 'esm', write: false }).outputFiles[0].text;
 const moduleUrl = 'data:text/javascript;base64,' + Buffer.from(source).toString('base64');
 async function setup(configure) {
@@ -1335,11 +1336,11 @@ test('activation reports missing public host capabilities clearly', async () => 
   const methods = ['mountMarkdown', 'mountKnowledgePicker', 'mountTree', 'openSurface', 'openMenu'];
   for (const missing of methods) {
     const ui = Object.fromEntries(methods.filter(method => method !== missing).map(method => [method, () => {}]));
-    assert.throws(() => activate({ ui }), error => error instanceof Error && !(error instanceof TypeError) && error.message.includes(missing) && error.message.includes('update LearnHarness'));
+    assert.throws(() => activate({ ui, i18n: englishI18n }), error => error instanceof Error && !(error instanceof TypeError) && error.message.includes(missing) && error.message.includes('update LearnHarness'));
   }
 });
 
 if (process.env.FLASHCARDS_BROWSER_FIXTURE) {
-  const html = '<!doctype html><html><head><meta charset="utf-8"><style>' + fs.readFileSync(path.join(__dirname, '../src/styles.css'), 'utf8') + '</style></head><body><script type="module">' + source + '\nwindow.h = (' + fixture.toString() + ')(document); activate(window.h.ctx); window.h.mount();</script></body></html>';
+  const html = '<!doctype html><html><head><meta charset="utf-8"><style>' + fs.readFileSync(path.join(__dirname, '../src/styles.css'), 'utf8') + '</style></head><body><script type="module">' + source + '\nwindow.h = (' + fixture.toString() + ')(document, ' + JSON.stringify(english) + '); activate(window.h.ctx); window.h.mount();</script></body></html>';
   fs.writeFileSync(process.env.FLASHCARDS_BROWSER_FIXTURE, html);
 }

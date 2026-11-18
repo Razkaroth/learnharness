@@ -1,8 +1,10 @@
 import type { PluginFrontendContext, PluginSettingsSchema, PluginWidgetHandle } from "learnharness-plugin-api";
 import { FAMILIES, LABELS, LANGUAGES, parseSettings, type Family, type Settings } from "./contract.ts";
+import { useI18n } from "./i18n.ts";
 import { RenderService } from "./render.ts";
 
 export async function activate(ctx: PluginFrontendContext): Promise<() => void> {
+  useI18n(ctx.i18n);
   const rendering = new RenderService();
   let current: Settings | undefined;
   let registration: PluginWidgetHandle<PluginSettingsSchema> | undefined;

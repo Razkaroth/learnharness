@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import type { PluginCodeBlockRenderer, PluginFrontendContext, PluginNotification, PluginSettingsSchema } from "learnharness-plugin-api";
 import { activate } from "../src/main.ts";
 import { DEFAULT_SETTINGS } from "../src/contract.ts";
+import { englishI18n } from "./i18n.ts";
 
 function deferred<T>() { let resolve!: (value: T) => void; let reject!: (error: Error) => void; const promise = new Promise<T>((yes, no) => { resolve = yes; reject = no; }); return { promise, resolve, reject }; }
 function fixture() {
@@ -13,7 +14,7 @@ function fixture() {
   const calls: { operation: string; input: unknown; result: ReturnType<typeof deferred<unknown>> }[] = [];
   let cleanup!: () => void;
   const ctx = {
-    signal: controller.signal, cleanup(fn: () => void) { cleanup = fn; },
+    signal: controller.signal, i18n: englishI18n, cleanup(fn: () => void) { cleanup = fn; },
     call(operation: string, input: unknown) { const result = deferred<unknown>(); calls.push({ operation, input, result }); return result.promise; },
     registerCodeBlock(value: PluginCodeBlockRenderer) { assert.ok(!renderers.has(value.language)); renderers.set(value.language, value); return () => { renderers.delete(value.language); }; },
     registerSettings(value: PluginSettingsSchema) { schema = value; return { update(value: PluginSettingsSchema) { schema = value; }, dispose() { schema = undefined; } }; },

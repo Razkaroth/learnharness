@@ -1,5 +1,5 @@
 import { build } from 'esbuild';
-import { mkdir, copyFile, lstat, rm } from 'node:fs/promises';
+import { mkdir, copyFile, cp, lstat, rm } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
@@ -16,5 +16,6 @@ await Promise.all([
   build({ entryPoints: [path.join(root, 'src/backend.cjs')], outfile: path.join(out, 'backend.cjs'), bundle: true, format: 'cjs', platform: 'node', target: 'node22' }),
   ...['manifest.json', 'LICENSE', 'FSRS-LICENSE.txt', 'README.md'].map(file => copyFile(path.join(root, file), path.join(out, file))),
   copyFile(path.join(root, 'src/styles.css'), path.join(out, 'styles.css')),
+  cp(path.join(root, 'locales'), path.join(out, 'locales'), { recursive: true }),
 ]);
 console.log(`Built ${out}`);

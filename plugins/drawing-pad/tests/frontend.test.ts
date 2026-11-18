@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { it } from "node:test";
 import type { PluginAction, PluginActionContext, PluginFrontendContext, PluginNotification, PluginSettingsSchema, PluginSurfaceProps } from "learnharness-plugin-api";
 import { activate } from "../src/main.ts";
+import { englishI18n } from "./i18n.ts";
 function fixture() {
   const signal = new AbortController(), notifications = new Set<(event: PluginNotification) => void>(), events = new Set<(event: unknown) => void>(), resyncs = new Set<() => void>();
   const actions = new Map<string, PluginAction>(); let schema: PluginSettingsSchema | undefined, surface: PluginSurfaceProps | undefined;
@@ -10,7 +11,7 @@ function fixture() {
   const calls: { name: string; value: unknown }[] = [];
   let read: () => unknown | Promise<unknown> = () => ({ ...saved });
   const ctx = {
-    manifest: { id: "drawing-pad" }, signal: signal.signal, cleanup() {},
+    manifest: { id: "drawing-pad" }, signal: signal.signal, i18n: englishI18n, cleanup() {},
     registerAction(action: PluginAction) { actions.set(action.id, action); return () => { actions.delete(action.id); }; },
     placeAction() { return () => {}; }, registerSubmissionInterceptor() { return () => {}; }, refreshActions() {}, refreshSubmissions() {},
     registerSettings(value: PluginSettingsSchema) { schema = value; return { update(value: PluginSettingsSchema) { schema = value; }, dispose() { disposedSettings++; schema = undefined; } }; },

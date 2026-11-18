@@ -2,11 +2,13 @@ import fs from "node:fs";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 import type { PluginBackendContext } from "learnharness-plugin-api";
+import { useI18n } from "./i18n.ts";
 import { DEFAULT_SETTINGS, parseColorChange, parseImageScaleChange, parseSettings, type Settings } from "./settings.ts";
 import { acceptedPoseKeys } from "./poses.ts";
 
 /** The backend stores preferences only. Editable drawings never leave window memory. */
 export function activate(ctx: PluginBackendContext): () => void {
+  useI18n(ctx.i18n);
   const file = path.join(ctx.dataDirectory, "settings.json");
   let settings: Settings;
   try { settings = parseSettings(JSON.parse(fs.readFileSync(file, "utf8"))); }

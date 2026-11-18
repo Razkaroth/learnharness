@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import { build } from "esbuild";
 import type { PluginAction, PluginFrontendContext, PluginNotification, PluginSettingsSchema } from "learnharness-plugin-api";
 import type { Capture, Draft, SessionSheet, Sheets } from "../src/state.ts";
+import { englishI18n } from "./i18n.ts";
 
 const project = fileURLToPath(new URL("../", import.meta.url));
 // Original frontend/state/pose/submission code; only browser mounting, palette
@@ -62,7 +63,7 @@ async function fixture(kind: "teaching" | "practice" = "practice") {
   let interceptor!: Parameters<PluginFrontendContext["registerSubmissionInterceptor"]>[0];
   let poseRead = () => Promise.resolve({ sessionId: "s", poses: [] as string[] });
   const ctx = {
-    manifest: { id: "drawing-pad" }, signal: owner.signal, cleanup() {}, refreshActions() {}, refreshSubmissions() {},
+    manifest: { id: "drawing-pad" }, signal: owner.signal, i18n: englishI18n, cleanup() {}, refreshActions() {}, refreshSubmissions() {},
     app: { pathname: () => "/controlled-session" }, onNotification(fn: (event: PluginNotification) => void) { notifications.add(fn); return () => notifications.delete(fn); },
     onAppEvent() { return () => {}; }, onResync() { return () => {}; }, registerSettings(value: PluginSettingsSchema) {
       schema = value; return { update(value: PluginSettingsSchema) { schema = value; }, dispose() {} };

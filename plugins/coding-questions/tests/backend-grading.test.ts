@@ -7,6 +7,7 @@ import type { PluginBackendContext, PluginQuestionGradingContext, PluginQuestion
 import { activate } from "../src/backend.ts";
 import type { CodingQuestionPayload } from "../src/contract.ts";
 import { readTestResult } from "../src/test-result.ts";
+import { englishBackendI18n } from "./i18n.ts";
 
 type SavedPayload = Omit<CodingQuestionPayload, "modelSolution"> & { modelSolution?: string };
 
@@ -34,6 +35,7 @@ test("public registered grader executes the supplied recipe after submission, re
   let disposed = 0;
   const cleanup = activate({
     dataDirectory,
+    i18n: englishBackendI18n,
     registerQuestionType(value: PluginQuestionTypeDefinition) { assert.equal(typeof value.gradeAnswer, "function"); grade = value.gradeAnswer!; return () => { disposed++; }; },
     registerProblemType() { return () => { disposed++; }; },
     registerInstructions() { return () => { disposed++; }; },

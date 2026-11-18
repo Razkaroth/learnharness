@@ -1,10 +1,12 @@
 import type { PluginBackendContext } from "learnharness-plugin-api";
-import { definition, instructions, practiceInstructions, problemDefinition, readTests } from "./contract.ts";
+import { buildDefinition, buildProblemDefinition, practiceAgentInstructions, readTests, teacherInstructions } from "./contract.ts";
+import { useI18n, t } from "./i18n.ts";
 import { runTests } from "./runner.ts";
 
 export function activate(ctx: PluginBackendContext): () => void {
+  useI18n(ctx.i18n);
   const unregisterQuestion = ctx.registerQuestionType({
-    ...definition,
+    ...buildDefinition(t),
     gradeAnswer(context) {
       if (typeof context.answer !== "string") throw new Error("Coding answers must be strings.");
       return runTests({
@@ -17,7 +19,7 @@ export function activate(ctx: PluginBackendContext): () => void {
     },
   });
   const unregisterProblem = ctx.registerProblemType({
-    ...problemDefinition,
+    ...buildProblemDefinition(t),
     processSubmission(context) {
       if (typeof context.submission !== "string") throw new Error("Coding submissions must be strings.");
       return runTests({
@@ -29,8 +31,8 @@ export function activate(ctx: PluginBackendContext): () => void {
       });
     },
   });
-  const unregisterPracticeInstructions = ctx.registerInstructions({ agents: ["practice"], text: practiceInstructions });
-  const unregisterInstructions = ctx.registerInstructions({ agents: ["teacher"], text: instructions });
+  const unregisterPracticeInstructions = ctx.registerInstructions({ agents: ["practice"], text: practiceAgentInstructions(t) });
+  const unregisterInstructions = ctx.registerInstructions({ agents: ["teacher"], text: teacherInstructions(t) });
   return () => {
     unregisterInstructions();
     unregisterPracticeInstructions();

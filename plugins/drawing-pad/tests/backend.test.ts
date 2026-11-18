@@ -6,13 +6,14 @@ import path from "node:path";
 import type { PluginBackendContext } from "learnharness-plugin-api";
 import { activate } from "../src/backend.ts";
 import { colorError, imageScaleError, parseColor, parseColorChange, parseImageScale, parseSettings } from "../src/settings.ts";
+import { englishBackendI18n } from "./i18n.ts";
 
 function fixture() {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "drawing-pad-test-"));
   const directory = path.join(root, "data"), controller = new AbortController();
   const handlers = new Map<string, (input: unknown) => unknown>();
   const events: unknown[] = [], records = new Map<string, unknown>();
-  const ctx = { dataDirectory: directory, signal: controller.signal,
+  const ctx = { dataDirectory: directory, signal: controller.signal, i18n: englishBackendI18n,
     handle(name: string, handler: (input: unknown) => unknown) { handlers.set(name, handler); return () => { handlers.delete(name); }; },
     events: { emit(topic: string, data: unknown) { events.push({ topic, data }); } },
     learning: { getSession(id: string) { return records.get(id) ?? null; } },
