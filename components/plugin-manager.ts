@@ -4,8 +4,7 @@ import type {
 	PluginActionContext, PluginActionPlacement, PluginSettingsRegistration, PluginPageActionContext, PluginActionShortcut,
 } from "@/src/core";
 
-import { preparePluginShortcut, copyPluginSubmissionTarget, preparePluginSubmissionInterceptor, type PluginSubmissionInterceptor, type PluginSubmissionTarget } from "../src/core/index.ts";
-import { localizedPluginManifest, pluginTranslate } from "../src/core/plugins.ts";
+import { preparePluginShortcut, copyPluginSubmissionTarget, preparePluginSubmissionInterceptor, localizedPluginManifest, pluginTranslate, type PluginSubmissionInterceptor, type PluginSubmissionTarget } from "../src/core/index.ts";
 import { orderSubmissionInterceptors, type SubmissionInterceptorRegistration } from "./plugin-submission-runner.ts";
 
 export type PluginMount = (container: HTMLElement, signal: AbortSignal) => ReturnType<PluginView["mount"]>;

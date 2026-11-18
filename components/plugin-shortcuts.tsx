@@ -1,14 +1,11 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { KEYBOARD_ACTIONS, KEYMAP_CHANGED_EVENT, loadOverrides, pluginShortcutId, pluginShortcutMatches, resolvePluginShortcuts, eventBinding, isTypingSurface, type PluginPageActionContext, type PluginShortcutCandidate, type KeymapOverrides } from "@/src/core";
+import { KEYBOARD_ACTIONS, KEYMAP_CHANGED_EVENT, loadOverrides, pluginShortcutId, pluginShortcutMatches, resolvePluginShortcuts, eventBinding, isTypingSurface, translate, type PluginPageActionContext, type PluginShortcutCandidate, type KeymapOverrides, type KeyActionDef, type ResolvedPluginShortcut } from "@/src/core";
 import { usePlugins } from "./plugins";
 import type { FrontendPlugin, PluginFrontendManager } from "./plugin-manager";
 import type { InteractionLayersController } from "./interaction-layers";
 import { findCurrentSurfaceBoundary } from "./plugin-surface-targets";
-import { translate } from "@/src/core/i18n";
-import type { KeyActionDef } from "@/src/core/keyboard";
-import type { ResolvedPluginShortcut } from "@/src/core/plugin-shortcuts";
 import type { Translate } from "./i18n";
 
 const ENGLISH: Translate = (key, vars) => translate("en", key, vars);
