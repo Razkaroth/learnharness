@@ -29,6 +29,7 @@ jobs:
           node-version: "26"
           cache: npm
       - run: npm ci
+      - run: npm run plugins:setup
       - run: npm run typecheck
       - run: npm test
       - run: npm run lint
@@ -50,6 +51,7 @@ jobs:
           node-version: "26"
           cache: npm
       - run: npm ci
+      - run: npm run plugins:setup
       - name: Version from the tag
         run: |
           n="${GITHUB_REF_NAME#raz-}"
