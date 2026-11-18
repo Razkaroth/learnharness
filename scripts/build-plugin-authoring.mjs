@@ -14,7 +14,7 @@ export const AUTHORING_DOCS = [
 export const AUTHORING_EXAMPLES = ["hello-plugin", "managed-agent", "teaching-extension"];
 export const AUTHORING_PROJECTS = ["flashcards", "coding-questions", "drawing-pad", "rich-code-blocks", "ui-showcase"];
 const PROJECT_FILES = [".gitignore", "README.md", "LICENSE", "THIRD-PARTY.md", "FSRS-LICENSE.txt", "manifest.json", "package.json", "package-lock.json", "tsconfig.json"];
-const PROJECT_DIRECTORIES = ["src", "scripts", "tests", "licenses"];
+const PROJECT_DIRECTORIES = ["src", "scripts", "tests", "licenses", "locales"];
 export const AUTHORING_ZIP = "learnharness-plugins.zip";
 
 /** Admit every component below the intended source root before dereferencing it.
