@@ -3,13 +3,14 @@ import { test } from "node:test";
 import type { PluginAction, PluginActionPlacement, PluginFrontendContext, PluginUi, PluginView } from "learnharness-plugin-api";
 import { activate, REQUIRED_UI_METHODS } from "../src/main.ts";
 import { createFixture } from "./fixture.ts";
+import { englishI18n } from "./i18n.ts";
 
 function registrationContext(ui: PluginUi) {
   const controller = new AbortController();
   const views: PluginView[] = [], actions: PluginAction[] = [], placements: PluginActionPlacement[] = [];
   const disposed: string[] = [], opened: string[] = [];
   const context = {
-    ui, signal: controller.signal,
+    ui, signal: controller.signal, i18n: englishI18n,
     registerView(value: PluginView) { views.push(value); return () => { disposed.push(`view:${value.id}`); }; },
     registerAction(value: PluginAction) { actions.push(value); return () => { disposed.push(`action:${value.id}`); }; },
     placeAction(value: PluginActionPlacement) { placements.push(value); return () => { disposed.push(`placement:${value.id}`); }; },

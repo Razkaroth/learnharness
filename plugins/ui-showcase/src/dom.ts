@@ -1,4 +1,5 @@
 import type { PluginButtonProps, PluginUi, PluginWidgetHandle } from "learnharness-plugin-api";
+import { t } from "./i18n.ts";
 
 /** A mount-local lifetime, including promises awaiting manual completion. */
 export class Scope {
@@ -50,7 +51,7 @@ export function example(parent: HTMLElement, id: string, label?: string): HTMLEl
 export function readout(parent: HTMLElement, family: string): (value: unknown) => void {
   const state = element("pre", undefined, "ui-showcase-state font-ui text-xs");
   state.dataset.state = family;
-  state.setAttribute("aria-label", `${family} local state and callbacks`);
+  state.setAttribute("aria-label", t("readout.aria", { family }));
   parent.append(state);
   return value => { state.textContent = JSON.stringify(value, null, 2); };
 }
@@ -81,7 +82,7 @@ export function family(ui: PluginUi, parent: HTMLElement, scope: Scope, id: stri
     current = new Scope(scope.signal);
     mount(body, current);
   };
-  button(ui, header, scope, `reset-${id}`, { label: "Reset", title: `Reset ${title.toLowerCase()} examples`, variant: "ghost", size: "xs", onClick: reset });
+  button(ui, header, scope, `reset-${id}`, { label: t("family.reset"), title: t("family.resetTitle", { title: title.toLowerCase() }), variant: "ghost", size: "xs", onClick: reset });
   scope.own(() => current?.dispose());
   reset();
 }

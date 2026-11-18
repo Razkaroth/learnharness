@@ -30,5 +30,6 @@ for (const input of Object.keys(result.metafile.inputs)) {
 for (const [from, to] of [["manifest.json", "manifest.json"], ["src/styles.css", "styles.css"], ["README.md", "README.md"], ["LICENSE", "LICENSE"]]) {
   fs.copyFileSync(path.join(root, from), path.join(output, to));
 }
+fs.cpSync(path.join(root, "locales"), path.join(output, "locales"), { recursive: true });
 console.log(`Built installable frontend-only package: ${output}`);
 console.log(`Browser bundle: ${fs.statSync(path.join(output, "main.js")).size} bytes; no runtime dependencies.`);

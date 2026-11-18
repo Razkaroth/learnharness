@@ -1,18 +1,19 @@
 import type { PluginTreeProps, PluginTreeRow, PluginUi, PluginUiContent, PluginWidgetHandle } from "learnharness-plugin-api";
 import { Scope, button, element, example, note, readout } from "./dom.ts";
+import { t } from "./i18n.ts";
 
 /** Synthetic controlled values only; the host owns row presentation and keyboard behavior. */
 export function mountTreeDemo(ui: PluginUi, body: HTMLElement, life: Scope): void {
-  note(body, "A small synthetic directory using the host tree. Shared item appears under both folders with independent occurrence keys. Selection is optional and never cascades from folders to children. Hiding selection preserves it; Reset clears this family's state.");
-  note(body, "Click a row, then use the host's arrow-row navigation; Space selects an enabled host checkbox. The editable draft keeps its normal input keys. This example owns its 36rem minimum width and horizontal scrolling, not a responsive tree engine.");
+  note(body, t("tree.note1"));
+  note(body, t("tree.note2"));
   let selectionEnabled = false;
   const selectedOccurrenceKeys = new Set<string>();
   const expanded: Record<string, boolean> = { "example-folder": true, "another-folder": true };
-  let draft = "Local draft";
+  let draft = t("tree.draftInitial");
   let lastCallback = "none";
   const show = readout(body, "tree");
   let tree: PluginWidgetHandle<PluginTreeProps>;
-  const toggle = button(ui, body, life, "toggle-tree-selection", { label: "Enable selection", variant: "outline", onClick() {
+  const toggle = button(ui, body, life, "toggle-tree-selection", { label: t("tree.enable"), variant: "outline", onClick() {
     if (life.signal.aborted) return;
     selectionEnabled = !selectionEnabled;
     lastCallback = selectionEnabled ? "selection enabled" : "selection disabled";
@@ -25,10 +26,10 @@ export function mountTreeDemo(ui: PluginUi, body: HTMLElement, life: Scope): voi
     const content = new Scope(signal);
     if (life.signal.aborted || content.signal.aborted) { content.dispose(); return content.dispose; }
     const root = element("div");
-    root.append(element("div", "Draft note", "ui-showcase-label font-ui text-xs"));
+    root.append(element("div", t("tree.draftNote"), "ui-showcase-label font-ui text-xs"));
     const input = element("input", undefined, "font-ui text-sm");
     input.type = "text";
-    input.setAttribute("aria-label", "Directory draft");
+    input.setAttribute("aria-label", t("tree.draftAria"));
     input.value = draft;
     const change = () => {
       if (life.signal.aborted || content.signal.aborted) return;
@@ -47,20 +48,21 @@ export function mountTreeDemo(ui: PluginUi, body: HTMLElement, life: Scope): voi
     },
   } } : {};
   const folder = (key: string, title: string, children: readonly PluginTreeRow[]): PluginTreeRow => ({
-    key, content: title, cells: { kind: "Folder", state: expanded[key] ? "Expanded" : "Collapsed" }, children,
-    ...selection(key, `Select ${title}`),
-    disclosure: { label: `Toggle ${title}`, expanded: expanded[key]!, onChange(value) {
+    key, content: title, cells: { kind: t("tree.kind.folder"), state: t(expanded[key] ? "tree.state.expanded" : "tree.state.collapsed") }, children,
+    ...selection(key, t("tree.select", { name: title })),
+    disclosure: { label: t("tree.toggle", { name: title }), expanded: expanded[key]!, onChange(value) {
       if (life.signal.aborted) return;
       expanded[key] = value; lastCallback = `disclosure.onChange: ${key}`; render();
     } },
   });
+  const noteCells = () => ({ kind: t("tree.kind.note"), state: t("tree.state.repeated") });
   const rows = (): PluginTreeRow[] => [
-    folder("example-folder", "Example folder", [
-      { key: "example-folder/shared-item", content: "Shared item", cells: { kind: "Note", state: "Repeated" }, ...selection("example-folder/shared-item", "Select Shared item in Example folder") },
-      { key: "example-folder/draft-note", content: draftContent, cells: { kind: "Draft", state: "Editable" }, ...selection("example-folder/draft-note", "Select Draft note") },
+    folder("example-folder", t("tree.exampleFolder"), [
+      { key: "example-folder/shared-item", content: t("tree.sharedItem"), cells: noteCells(), ...selection("example-folder/shared-item", t("tree.selectIn", { name: t("tree.sharedItem"), folder: t("tree.exampleFolder") })) },
+      { key: "example-folder/draft-note", content: draftContent, cells: { kind: t("tree.kind.draft"), state: t("tree.state.editable") }, ...selection("example-folder/draft-note", t("tree.select", { name: t("tree.draftNote") })) },
     ]),
-    folder("another-folder", "Another folder", [
-      { key: "another-folder/shared-item", content: "Shared item", cells: { kind: "Note", state: "Repeated" }, ...selection("another-folder/shared-item", "Select Shared item in Another folder") },
+    folder("another-folder", t("tree.anotherFolder"), [
+      { key: "another-folder/shared-item", content: t("tree.sharedItem"), cells: noteCells(), ...selection("another-folder/shared-item", t("tree.selectIn", { name: t("tree.sharedItem"), folder: t("tree.anotherFolder") })) },
     ]),
   ];
   const viewport = example(body, "tree");
@@ -68,14 +70,14 @@ export function mountTreeDemo(ui: PluginUi, body: HTMLElement, life: Scope): voi
   const minimum = element("div"); minimum.style.minWidth = "36rem";
   viewport.append(minimum);
   tree = life.widget(ui.mountTree(minimum, {
-    label: "Directory example", header: "Name", rows: rows(), columns: [
-      { key: "kind", header: "Kind", width: 56 },
-      { key: "state", header: "State", width: 80 },
+    label: t("tree.label"), header: t("tree.header.name"), rows: rows(), columns: [
+      { key: "kind", header: t("tree.header.kind"), width: 56 },
+      { key: "state", header: t("tree.header.state"), width: 80 },
     ],
   }, { signal: life.signal }));
   function render() {
     tree.update({ rows: rows() });
-    toggle.update({ label: selectionEnabled ? "Disable selection" : "Enable selection" });
+    toggle.update({ label: t(selectionEnabled ? "tree.disable" : "tree.enable") });
     show({ selectionEnabled, selectedOccurrenceKeys: [...selectedOccurrenceKeys], expanded: { ...expanded }, draft, lastCallback });
   }
   render();

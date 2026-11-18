@@ -7,6 +7,7 @@ import { createRequire } from "node:module";
 // than weakening the product's skipLibCheck:false policy.
 const { parseHTML } = createRequire(import.meta.url)("linkedom") as { parseHTML(html: string): { document: Document } };
 import type { PluginFrontendContext, PluginTreeRow, PluginUi, PluginUiContent } from "learnharness-plugin-api";
+import { englishI18n } from "./i18n.ts";
 
 type AnyProps = Record<string, any>;
 export interface TreeContentRecord {
@@ -103,7 +104,7 @@ export function createFixture() {
       };
     },
   }) as PluginUi;
-  const context = new Proxy({ ui, signal: controller.signal }, {
+  const context = new Proxy({ ui, signal: controller.signal, i18n: englishI18n }, {
     get(object, key) {
       if (key in object) return object[key as keyof typeof object];
       calls.push(String(key));

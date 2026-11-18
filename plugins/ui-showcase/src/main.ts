@@ -1,6 +1,7 @@
 import type { PluginFrontendContext, PluginSurfaceTarget, PluginUi } from "learnharness-plugin-api";
 import { Scope } from "./dom.ts";
 import { mountGallery } from "./gallery.ts";
+import { useI18n, t } from "./i18n.ts";
 import { openSurfaceDemo } from "./surfaces.ts";
 
 export const REQUIRED_UI_METHODS = [
@@ -15,15 +16,16 @@ export function activate(ctx: PluginFrontendContext): () => void {
     if (typeof ctx[method] !== "function") missingCapabilities(method);
   }
   if (missing.length) missingCapabilities(missing.map(method => `ui.${method}`).join(", "));
+  useI18n(ctx.i18n);
   const scope = new Scope(ctx.signal);
   if (scope.signal.aborted) return scope.dispose;
   // Targets identify mounted page lifetimes. Retired pages must not be retained.
   const surfaces = new WeakMap<PluginSurfaceTarget, ReturnType<typeof openSurfaceDemo>>();
-  scope.own(ctx.registerView({ id: "gallery", name: "UI Showcase", mount: (root, signal) => mountGallery(root, ctx, signal) }));
-  scope.own(ctx.registerAction({ id: "open-gallery", name: "UI Showcase", run: () => ctx.app.openView("gallery") }));
+  scope.own(ctx.registerView({ id: "gallery", name: t("manifest.name"), mount: (root, signal) => mountGallery(root, ctx, signal) }));
+  scope.own(ctx.registerAction({ id: "open-gallery", name: t("manifest.name"), run: () => ctx.app.openView("gallery") }));
   scope.own(ctx.placeAction({ id: "gallery-sidebar", actionId: "open-gallery", location: "sidebar" }));
   scope.own(ctx.registerAction({
-    id: "open-surface", name: "UI Showcase surface",
+    id: "open-surface", name: t("action.surface"),
     run(context) {
       if (context.placement !== "top-bar" || context.surface !== "session") {
         throw new Error("UI Showcase surface requires a native session top-bar context.");
